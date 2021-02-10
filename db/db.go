@@ -18,14 +18,26 @@ var DB *gorm.DB
 
 func init() {
 	var err error
-	CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
-	DB, err = gorm.Open(Dialect, CONNECT)
+	//CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
+	//DB, err = gorm.Open(Dialect, CONNECT)
+	DB, err = connectHerokuDB(err)
 	if err != nil {
 		panic("failed to connect database")
 	}
 	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
 }
 
+func connectHerokuDB(err error) (*gorm.DB, error) {
+	CONNECT := "b4ffeaf9d21ec3:e23d209c@us-cdbr-east-03.cleardb.com/heroku_3afafbe663f4456?parseTime=true"
+	DB, err = gorm.Open(Dialect, CONNECT)
+	return DB, err
+}
+
+func connectLocalDB(err error) (*gorm.DB, error) {
+	CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
+	DB, err = gorm.Open(Dialect, CONNECT)
+	return DB, err
+}
 //func insertSmapleData(db *gorm.DB) {
 //	ts := db.Begin()
 //	defer ts.Commit()
