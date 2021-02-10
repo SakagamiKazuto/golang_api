@@ -1,0 +1,101 @@
+basePath: /
+definitions:
+  echo.HTTPError:
+    properties:
+      message:
+        type: object
+    type: object
+  model.Bosyu:
+    properties:
+      about:
+        type: string
+      city:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      level:
+        type: string
+      message:
+        items:
+          $ref: '#/definitions/model.Message'
+        type: array
+      pref:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  model.Message:
+    properties:
+      bosyu_id:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      message:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
+  model.User:
+    properties:
+      address:
+        type: string
+      bosyu:
+        items:
+          $ref: '#/definitions/model.Bosyu'
+        type: array
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      id:
+        type: integer
+      mail:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      tel:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+host: localhost:9999
+info:
+  contact: {}
+  description: This is goecho api server.
+  title: matchihg_portfolio
+  version: "1.0"
+paths:
+  /api/bosyu/create:
+    post:
+      consumes:
+      - application/json
+      description: create bosyu in a group
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Bosyu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: create bosyu
+swagger: "2.0"

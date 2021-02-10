@@ -1,0 +1,29 @@
+version: '3'
+services:
+    api:
+        build:
+            dockerfile: Dockerfile.api
+            context: .
+        volumes:
+            - ./:/go/src/work
+              # command:  サーバーを起動するときのコマンド
+        command: go run main.go router.go
+        ports:
+            - "9999:9999"
+        tty: true
+    db:
+        image: mysql:5.7.31
+        container_name: mysql_host
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: matching_portfolio
+            MYSQL_USER: dev
+            MYSQL_PASSWORD: dev
+            TZ: 'Asia/Tokyo'
+        command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        volumes:
+            - ./db/data:/var/lib/mysql
+            - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
+            - ./db/sql:/docker-entrypoint-initdb.d
+        ports:
+            - 3306:3306
