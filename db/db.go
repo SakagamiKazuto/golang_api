@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"os"
 	"work/model"
 )
 
@@ -20,7 +21,11 @@ func init() {
 	var err error
 	//CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
 	//DB, err = gorm.Open(Dialect, CONNECT)
-	DB, err = connectHerokuDB(err)
+	if os.Getenv("CLEARDB_DATABASE_URL") == "" {
+		DB, err = connectLocalDB(err)
+	} else {
+		DB, err = connectHerokuDB(err)
+	}
 	if err != nil {
 		panic("failed to connect database")
 	}

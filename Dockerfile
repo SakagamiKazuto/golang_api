@@ -16,6 +16,6 @@ RUN go get -u github.com/labstack/echo \
         && go get github.com/alecthomas/template \
         && go get -u github.com/swaggo/echo-swagger
 
-EXPOSE 9999
+ENV PORT=${PORT}
 
 CMD ["go", "run", "main.go"]
