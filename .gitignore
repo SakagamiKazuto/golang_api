@@ -18,4 +18,5 @@
 */.idea
 db/data/
 .gitignore
+.env
 
