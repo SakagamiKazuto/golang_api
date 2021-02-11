@@ -6,7 +6,6 @@ services:
             context: .
         volumes:
             - ./:/go/src/work
-              # command:  サーバーを起動するときのコマンド
         command: go run main.go router.go
         ports:
             - "9999:9999"
@@ -16,7 +15,7 @@ services:
         container_name: mysql_host
         environment:
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: matching_portfolio
+            MYSQL_DATABASE: golang_mysql_dev
             MYSQL_USER: dev
             MYSQL_PASSWORD: dev
             TZ: 'Asia/Tokyo'

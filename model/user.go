@@ -23,7 +23,6 @@ func CreateUser(user *User, db *gorm.DB) {
 // !!パスワードも使ってログインするように実装を変更したい
 func FindUser(u *User, db *gorm.DB) User {
 	var user User
-	// SELECT * FROM `users` ORDER BY `users`.`id` LIMIT 1
 	db.Where(u).First(&user)
 	return user
 }

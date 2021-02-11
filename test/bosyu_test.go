@@ -20,17 +20,9 @@ import (
 	"work/common"
 	"work/model"
 	"work/handler"
-	//"work/db"
+	"work/db"
 )
 
-/* Tasks
-!!DB初期化を保証できるバッチ関数を作ることでDBに入ってる値を保証したい
-1.recordの削除 2.DB値の初期化を処理として入れたい → DB.createとか使えばいけそう
-
-!!各API例外パターンテスト & 実装したい
-!!結果の検証がassert.containsで検証しているだけで、このままだと"余計なもの含んでるパターン"検証できないので細分化したい
-!!handle, modelでテストを分割したい
-*/
 
 /*
 CreateBosyuTests
@@ -77,7 +69,7 @@ func TestCreateBosyuHandlerNormalPattern(t *testing.T) {
 	e := echo.New()
 
 	bosyu_json := `{"title": "sample_title", "about": "sample_about", "pref": "愛媛県", "city": "松山市", "level": "player", "user_id": 123123}`
-	token, err := handler.CreateToken(uint(3), "sample2@mail.com")
+	token, err := createTokenFromSomeUser()
 		if err != nil {
 			t.Errorf("got error like: %+v", err)
 		}
@@ -94,7 +86,7 @@ func TestCreateBosyuHandlerNormalPattern(t *testing.T) {
 //2. Title or Aboutにおける空欄ではエラーを返す
 func TestCreateBosyuHandlerErrorPattern(t *testing.T) {
 	e := echo.New()
-	token, err := handler.CreateToken(uint(3), "sample2@mail.com")
+	token, err := createTokenFromSomeUser()
 	if err != nil {
 		t.Errorf("got error like: %+v", err)
 	}
@@ -128,10 +120,6 @@ func TestCreateBosyuHandlerErrorPattern(t *testing.T) {
 	}
 }
 
-func getErrorStatusCode(res interface{}) int {
-	code := reflect.Indirect(reflect.ValueOf(res)).Field(0).Interface().(int)
-	return code
-}
 
 //// !! 1.id指定 4.それぞれblank時点の動作をテストしたい
 //// 2.住所指定 3.市指定はapiの仕様上保留
@@ -217,6 +205,12 @@ func getDBMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	return gdb, mock, nil
 }
 
+func createTokenFromSomeUser()(string, error) {
+	user := model.FindUser(&model.User{}, db.DB)
+	token, err := handler.CreateToken(user.ID, user.Mail)
+	return token, err
+}
+
 func CreatePostRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
 	bodyReader := strings.NewReader(bosyu_json)
 	req := httptest.NewRequest("POST", "/api/bosyu/create", bodyReader)
@@ -227,3 +221,7 @@ func CreatePostRequest(bosyu_json string, token string) (*http.Request, *httptes
 	return req, rec
 }
 
+func getErrorStatusCode(res interface{}) int {
+	code := reflect.Indirect(reflect.ValueOf(res)).Field(0).Interface().(int)
+	return code
+}

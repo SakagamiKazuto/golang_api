@@ -5,6 +5,7 @@ RUN mkdir /go/src/work
 WORKDIR /go/src/work
 ADD ./ /go/src/work
 
+# 特定パッケージのgo getが遅い場合にそのデバッグに時間がかかるため細分化
 RUN go get -u github.com/labstack/echo \
 && go get -u github.com/labstack/echo/middleware
 RUN go get github.com/jinzhu/gorm
