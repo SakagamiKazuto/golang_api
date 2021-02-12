@@ -345,20 +345,99 @@ func TestUpdateBosyuHandlerError(t *testing.T) {
 	}
 }
 //
-//// !! 1.存在するID指定 2. IDが存在しないパターン 3. 0になったときerror吐くパターン
-//func TestDeleteBosyu(t *testing.T) {
-//	// echo.New()をテストの中で何度も呼ばなくて住むようにしたい
-//	e := echo.New()
-//
-//	// user_id exists in Record pattern
-//	req := httptest.NewRequest("DELETE", "/api/bosyu/delete?id=1", nil)
-//	rec := httptest.NewRecorder()
-//
-//	contents := e.NewContext(req, rec)
-//
-//	assert.NoError(t, handler.DeleteBosyu(contents))
-//	assert.Equal(t, http.StatusNoContent, rec.Code)
-//}
+
+/*
+DeleteBosyuTests
+Model:
+Normal
+1. BosyuのIDがdatabaseに存在する
+
+Error
+1. BosyuのIDがdatabaseに存在しない
+
+Handler:
+Normal
+1. status200
+
+Error
+1. DBにIDが一致する募集が存在しない
+2. bosyu_idが正しくない値
+3. JWTの認証が通らない
+*/
+func TestDeleteBosyuModelNormal(t *testing.T) {
+	b := new(model.Bosyu)
+	b.ID = 1
+	err := model.DeleteBosyu(b.ID, db.DB)
+	assert.NoError(t, err)
+}
+
+func TestDeleteBosyuModelError(t *testing.T) {
+	b := new(model.Bosyu)
+	b.ID = 0
+
+	err := model.DeleteBosyu(b.ID, db.DB)
+	assert.Error(t, err)
+}
+
+func TestDeleteBosyuHandlerNormal(t *testing.T) {
+	e := echo.New()
+
+	token, err := createTokenFromSomeUser()
+	if err != nil {
+		t.Errorf("got error like: %+v", err)
+	}
+
+	req, rec := createDeleteRequest("1", token)
+
+	contents := e.NewContext(req, rec)
+	exec := middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
+
+	if assert.NoError(t, exec) {
+		assert.Equal(t, http.StatusNoContent, rec.Code)
+	}
+}
+
+func TestDeleteBosyuHandlerError(t *testing.T) {
+	e := echo.New()
+	token, err := createTokenFromSomeUser()
+	if err != nil {
+		t.Errorf("got error like: %+v", err)
+	}
+	// 1.DBにBosyuのIDが存在しない
+	req, rec := createDeleteRequest("0", token)
+
+	contents := e.NewContext(req, rec)
+	exec := middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
+	res := exec
+
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusNotFound, code)
+	}
+
+	//2. bosyu_idが正しくない値
+	req, rec = createDeleteRequest("invalid_param", token)
+
+	contents = e.NewContext(req, rec)
+	exec = middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
+	res = exec
+
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusBadRequest, code)
+	}
+
+	//3. JWTの認証が未通過
+	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
+	req, rec = createPostRequest("1", token)
+	contents = e.NewContext(req, rec)
+	exec = middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
+	res = exec
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusNotFound, code)
+	}
+}
 
 func getDBMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
@@ -401,6 +480,13 @@ func createUpdateRequest(bosyu_json string, token string) (*http.Request, *httpt
 
 func createGetRequest(uID string, token string) (*http.Request, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest("GET", fmt.Sprintf("/api/bosyu/get?user_id=%v", uID), nil)
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
+	rec := httptest.NewRecorder()
+	return req, rec
+}
+
+func createDeleteRequest(bID string, token string) (*http.Request, *httptest.ResponseRecorder) {
+	req := httptest.NewRequest("DELETE", fmt.Sprintf("/api/bosyu/delete?bosyu_id=%v", bID), nil)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
 	rec := httptest.NewRecorder()
 	return req, rec

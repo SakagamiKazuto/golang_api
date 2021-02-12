@@ -47,13 +47,18 @@ func UpdateBosyu(b *Bosyu, db *gorm.DB) (*Bosyu, error) {
 	}).RowsAffected
 
 	if rows == 0 {
-		return nil, fmt.Errorf("Could not find Bosyu (ID = %v) in Database", b.ID)
+		return nil, fmt.Errorf("Could not find Bosyu (ID = %v) in table", b.ID)
 	}
 
 	return b, nil
 }
-//
-//func DeleteBosyu(bosyu_id uint) {
-//	db.Delete(&Bosyu{}, bosyu_id)
-//}
+
+func DeleteBosyu(bosyu_id uint, db *gorm.DB) error {
+	rows := db.Where("id = ?", bosyu_id).Delete(&Bosyu{}).RowsAffected
+	if rows == 0 {
+		return fmt.Errorf("Could not find Bosyu (ID = %v) in table", bosyu_id)
+	}
+	return nil
+}
+
 

@@ -27,10 +27,6 @@ func FindUser(u *User, db *gorm.DB) User {
 	return user
 }
 
-//func CreateUser(user *User) {
-//	db.Create(user)
-//}
-//
 //func FindUser(u *User) User {
 //	var user User
 //	db.Where(u).First(&user)

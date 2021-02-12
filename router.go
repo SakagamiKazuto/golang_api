@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/middleware"
 	"github.com/swaggo/echo-swagger"
 	_ "work/docs"
-	//"github.com/SakagamiKazuto/matching_portfolio/handler"
 	"work/handler"
 )
 
@@ -28,7 +27,7 @@ func newRouter() *echo.Echo {
 	api.GET("/bosyu/get", handler.GetBosyu)
 	api.POST("/bosyu/create", handler.CreateBosyu)
 	api.PUT("/bosyu/update", handler.UpdateBosyu)
-	//e.DELETE("/bosyu/delete", handler.DeleteBosyu)
+	api.DELETE("/bosyu/delete", handler.DeleteBosyu)
 
 	return e
 }

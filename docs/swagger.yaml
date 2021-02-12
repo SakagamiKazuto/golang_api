@@ -98,6 +98,33 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
       summary: create bosyu
+  /api/bosyu/delete:
+    delete:
+      consumes:
+      - application/json
+      description: delete bosyu in a group
+      parameters:
+      - description: bosyu_id which bosyu has
+        in: query
+        name: bosyu_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Bosyu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: delete bosyu
   /api/bosyu/get:
     get:
       consumes:
@@ -127,4 +154,25 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
       summary: get bosyu
+  /api/bosyu/update:
+    put:
+      consumes:
+      - application/json
+      description: update bosyu in a group
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Bosyu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: create bosyu
 swagger: "2.0"

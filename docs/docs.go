@@ -50,6 +50,47 @@ var doc = `{
                 }
             }
         },
+        "/api/bosyu/delete": {
+            "delete": {
+                "description": "delete bosyu in a group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "delete bosyu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "bosyu_id which bosyu has",
+                        "name": "bosyu_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Bosyu"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/bosyu/get": {
             "get": {
                 "description": "get bosyu in a group",
@@ -77,6 +118,38 @@ var doc = `{
                             "items": {
                                 "$ref": "#/definitions/model.Bosyu"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bosyu/update": {
+            "put": {
+                "description": "update bosyu in a group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "create bosyu",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Bosyu"
                         }
                     },
                     "400": {
