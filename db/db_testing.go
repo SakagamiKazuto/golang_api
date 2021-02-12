@@ -3,15 +3,20 @@ package db
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"time"
+
+	//"time"
 	"work/model"
 )
 
-
+/*
+自動テスト実行するにあたり必要な関数はこのファイルに置く
+*/
 func ConnectTestDB() {
-	DBUser     := "root"
-	DBPass     := "root"
+	DBUser := "root"
+	DBPass := "root"
 	DBProtocol := "tcp(db:3306)"
-	DBName     := "golang_mysql_test"
+	DBName := "golang_mysql_test"
 	CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
 	var err error
 	DB, err = gorm.Open(Dialect, CONNECT)
@@ -20,7 +25,6 @@ func ConnectTestDB() {
 	}
 	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
 }
-
 
 func InsertTestData() {
 	ts := DB.Begin()
@@ -33,17 +37,27 @@ func InsertTestData() {
 		},
 	)
 
-	ts.Create(
-		&model.Bosyu{
-			Title:  "明示的にUSERIDを指定2",
-			UserID: 1,
-		},
-	)
+
+	//!! 本当は配列でスマートにかけるようにしたい
+	//bosyus := []model.Bosyu{
+	//	{Title: "sample1", About: "sample1", UserID: 1, Model: gorm.Model{DeletedAt: nowP}},
+	//	{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{DeletedAt: nowP}},
+	//}
+
+	ts.Create(&model.Bosyu{Title: "sample1", About: "sample1", UserID: 1})
+	// deleted_at is not Null
+	ts.Create(&model.Bosyu{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{DeletedAt: getTimeNowPointer()}})
 
 	if err := ts.Error; err != nil {
 		ts.Rollback()
 	}
 	return
+}
+
+func getTimeNowPointer() *time.Time {
+	now := time.Now()
+	nowP := &now
+	return nowP
 }
 
 func DeleteTestData() {

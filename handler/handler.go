@@ -26,13 +26,13 @@ import (
 // @Failure 400 {object} echo.HTTPError
 // @Router /api/bosyu/create [post]
 func CreateBosyu(c echo.Context) error {
-	// JWTを入れた際に必要になるロジック
 	if CheckHasLogined(c) == false {
 		return &echo.HTTPError{
 			Code: http.StatusNotFound,
 			Message: "can't find login user.",
 		}
 	}
+
 	bosyu := new(model.Bosyu)
 	if err := c.Bind(bosyu); err != nil {
 		return err
@@ -59,12 +59,22 @@ func GetBosyu(c echo.Context) error {
 		}
 	}
 
-	// !! ?user_id=のとき、いつの間にか値に0が格納されてしまう
+	if c.QueryParam("user_id") == "" {
+		return &echo.HTTPError{
+			Code:    http.StatusBadRequest,
+			Message: "Blank user_id is invalid parameter",
+		}
+	}
+
 	user_id, _ := strconv.ParseUint(c.QueryParam("user_id"), 10, 32)
 
-	var bosyus []model.Bosyu
-	model.FindBosyu(&bosyus, uint(user_id), db.DB)
-
+	bosyus := model.FindBosyu(uint(user_id), db.DB)
+	if len(bosyus) == 0 {
+		return &echo.HTTPError{
+			Code: http.StatusNotFound,
+			Message: "can't find bosyus.",
+		}
+	}
 	return c.JSON(http.StatusOK, bosyus)
 }
 

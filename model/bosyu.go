@@ -30,12 +30,10 @@ func CreateBosyu(b *Bosyu, db *gorm.DB) *Bosyu {
 	return b
 }
 
-func FindBosyu(b *[]Bosyu, user_id uint, db *gorm.DB) {
-	if user_id == 0{
-		db.Find(&b)
-	} else {
-		db.Where("user_id = ? AND deleted_at is null", user_id).Find(&b)
-	}
+func FindBosyu(user_id uint, db *gorm.DB) []Bosyu {
+	var bosyus []Bosyu
+	db.Where("user_id = ? AND deleted_at IS NULL", user_id).Find(&bosyus)
+	return bosyus
 }
 //
 //func UpdateBosyu(b *Bosyu) {

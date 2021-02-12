@@ -12,7 +12,7 @@ import (
 1. テストDB接続
 2. サンプルデータの挿入
 3. テストの実行
-4. データの初期化
+//4. データの初期化
  */
 func TestMain(m *testing.M) {
 	db.ConnectTestDB()
@@ -20,7 +20,6 @@ func TestMain(m *testing.M) {
 	db.InsertTestData()
 	code := m.Run()
 
-	db.DeleteTestData()
 	os.Exit(code)
 }
 
