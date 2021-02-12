@@ -32,8 +32,9 @@ func InsertTestData() {
 
 	ts.Create(
 		&model.User{
-			Name: "User1",
-			Mail: "sample1@gmail.com",
+			Name:  "User1",
+			Mail:  "sample1@gmail.com",
+			Model: gorm.Model{ID: 1},
 		},
 	)
 
@@ -44,9 +45,10 @@ func InsertTestData() {
 	//	{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{DeletedAt: nowP}},
 	//}
 
-	ts.Create(&model.Bosyu{Title: "sample1", About: "sample1", UserID: 1})
+	ts.Create(&model.Bosyu{Title: "sample1", About: "sample1", UserID: 1, Model: gorm.Model{ID:1}})
 	// deleted_at is not Null
-	ts.Create(&model.Bosyu{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{DeletedAt: getTimeNowPointer()}})
+	ts.Create(&model.Bosyu{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{ID:2, DeletedAt: getTimeNowPointer()}})
+	ts.Create(&model.Bosyu{Title: "sample3", About: "sample3", UserID: 1, Model: gorm.Model{ID:3, DeletedAt: getTimeNowPointer()}})
 
 	if err := ts.Error; err != nil {
 		ts.Rollback()

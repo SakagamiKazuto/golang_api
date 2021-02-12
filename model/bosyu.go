@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	//"fmt"
 	//"log"
 	"github.com/jinzhu/gorm"
@@ -36,14 +37,20 @@ func FindBosyu(user_id uint, db *gorm.DB) []Bosyu {
 	return bosyus
 }
 
-func UpdateBosyu(b *Bosyu, db *gorm.DB) {
-	db.Model(b).Update(map[string]interface{}{
+func UpdateBosyu(b *Bosyu, db *gorm.DB) (*Bosyu, error) {
+	rows := db.Model(b).Where("id = ?", b.ID).Update(map[string]interface{}{
 		"title":      b.Title,
 		"about":      b.About,
 		"prefecture": b.Prefecture,
 		"city":       b.City,
 		"level":      b.Level,
-	})
+	}).RowsAffected
+
+	if rows == 0 {
+		return nil, fmt.Errorf("Could not find Bosyu (ID = %v) in Database", b.ID)
+	}
+
+	return b, nil
 }
 //
 //func DeleteBosyu(bosyu_id uint) {

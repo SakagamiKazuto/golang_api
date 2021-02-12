@@ -55,7 +55,6 @@ func CreateBosyu(c echo.Context) error {
 // @Failure 400,404 {object} echo.HTTPError
 // @Router /api/bosyu/get [get]
 func GetBosyu(c echo.Context) error {
-	//JWTを入れた際に必要になるロジック
 	if CheckHasLogined(c) == false {
 		return &echo.HTTPError{
 			Code: http.StatusNotFound,
@@ -83,9 +82,16 @@ func GetBosyu(c echo.Context) error {
 }
 
 func UpdateBosyu(c echo.Context) error {
-	// JWTを入れた際に必要になるロジック追加
+	if CheckHasLogined(c) == false {
+		return &echo.HTTPError{
+			Code: http.StatusNotFound,
+			Message: "can't find login user.",
+		}
+	}
+
 	bosyu := new(model.Bosyu)
-	if err := c.Bind(bosyu); err != nil {
+	var err error
+	if err = c.Bind(bosyu); err != nil {
 		return err
 	}
 
@@ -96,9 +102,14 @@ func UpdateBosyu(c echo.Context) error {
 		}
 	}
 
-	model.UpdateBosyu(bosyu, db.DB)
-
-	return c.JSON(http.StatusCreated, bosyu)
+	bosyu, err = model.UpdateBosyu(bosyu, db.DB)
+	if err != nil {
+		return &echo.HTTPError{
+			Code:    http.StatusNotFound,
+			Message: err,
+		}
+	}
+	return c.JSON(http.StatusOK, bosyu)
 }
 //
 //func DeleteBosyu(c echo.Context) error {

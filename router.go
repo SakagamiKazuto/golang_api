@@ -27,7 +27,7 @@ func newRouter() *echo.Echo {
 	api.Use(middleware.JWTWithConfig(handler.Config))   // /api 下はJWTの認証が必要
 	api.GET("/bosyu/get", handler.GetBosyu)
 	api.POST("/bosyu/create", handler.CreateBosyu)
-	//e.PUT("/bosyu/update", handler.UpdateBosyu)
+	api.PUT("/bosyu/update", handler.UpdateBosyu)
 	//e.DELETE("/bosyu/delete", handler.DeleteBosyu)
 
 	return e

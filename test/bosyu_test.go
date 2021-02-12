@@ -33,7 +33,7 @@ Normal
 1. status201
 
 Error
-1. TitleとAboutの空欄はエラー
+1. TitleとAboutの空欄
 2. JWTの認証が通らない
 */
 func TestCreateBosyuModel(t *testing.T) {
@@ -68,7 +68,6 @@ func TestCreateBosyuModel(t *testing.T) {
 	}
 }
 
-// 1. 正しい値のときはJSONが帰ってくる
 func TestCreateBosyuHandlerNormal(t *testing.T) {
 	e := echo.New()
 
@@ -87,7 +86,6 @@ func TestCreateBosyuHandlerNormal(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, rec.Code)
 }
 
-//2. Title or Aboutにおける空欄ではエラーを返す
 func TestCreateBosyuHandlerError(t *testing.T) {
 	e := echo.New()
 	token, err := createTokenFromSomeUser()
@@ -174,7 +172,6 @@ func TestGetBosyuHandlerNormal(t *testing.T) {
 	}
 }
 
-
 func TestGetBosyuHandlerError(t *testing.T) {
 	e := echo.New()
 
@@ -216,22 +213,136 @@ func TestGetBosyuHandlerError(t *testing.T) {
 	}
 }
 
-func TestUpdateBosyu(t *testing.T) {
+
+/*
+UpdateBosyuTests
+Model:
+Normal
+1. BosyuのIDがdatabaseに存在する
+
+Error
+1. BosyuのIDがdatabaseに存在しない
+
+Handler:
+Normal
+1. status200
+
+Error
+1. DBにIDが一致する募集が存在しない
+2. TitleとAboutの空欄である
+3. JWTの認証が通らない
+*/
+func TestUpdateBosyuModelNormal(t *testing.T) {
+	b := new(model.Bosyu)
+
+	b.Title = "sample1_title_updated"
+	b.About = "sample1_about_updated"
+	b.Prefecture = "sample1_pref_updated"
+	b.City = "sample1_city_updated"
+	b.Level = "sample1_level_updated"
+	b.UserID = 1
+	b.ID = 1
+	bosyu, err := model.UpdateBosyu(b, db.DB)
+	if assert.NoError(t, err) {
+		assert.Empty(t, nil, bosyu.DeletedAt)
+		assert.Equal(t, "sample1_title_updated", bosyu.Title)
+	}
+}
+
+func TestUpdateBosyuModelError(t *testing.T) {
+	b := new(model.Bosyu)
+
+	b.Title = "sample1_title_updated"
+	b.About = "sample1_about_updated"
+	b.Prefecture = "sample1_pref_updated"
+	b.City = "sample1_city_updated"
+	b.Level = "sample1_level_updated"
+	b.UserID = 1
+	b.ID = 0
+
+	_, err := model.UpdateBosyu(b, db.DB)
+	assert.Error(t, err)
+
+}
+
+func TestUpdateBosyuHandlerNormal(t *testing.T) {
 	e := echo.New()
 
-	// テスト用リクエスト生成
-	bosyu_json := `{"id": 1, "title": "sample_title", "about": "sample_about", "pref": "香川県", "city": "高松市", "level": "player", "user_id": 1}`
-	bodyReader := strings.NewReader(bosyu_json)
-	req := httptest.NewRequest("PUT", "/api/bosyu/update", bodyReader)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	rec := httptest.NewRecorder()
+	token, err := createTokenFromSomeUser()
+	if err != nil {
+		t.Errorf("got error like: %+v", err)
+	}
+
+	title := "sample1_title_updated"
+	about := "sample1_about_updated"
+	pref:= "sample1_pref_updated"
+	city := "sample1_city_updated"
+	level := "sample1_level_updated"
+	user_id := 1
+	id := 3
+	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
+	req, rec := createUpdateRequest(bosyu_json, token)
 
 	contents := e.NewContext(req, rec)
+	exec := middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
 
-	assert.NoError(t, handler.UpdateBosyu(contents))
-	assert.Equal(t, http.StatusCreated, rec.Code)
-	assert.Contains(t, rec.Body.String(), "高松市")
+	if assert.NoError(t, exec) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+	}
+}
+
+func TestUpdateBosyuHandlerError(t *testing.T) {
+	e := echo.New()
+	token, err := createTokenFromSomeUser()
+	if err != nil {
+		t.Errorf("got error like: %+v", err)
+	}
+	// 1.DBにBosyuのIDが存在しない
+	id := 0
+	title := "sample1_title_updated"
+	about := "sample1_about_updated"
+	pref:= "sample1_pref_updated"
+	city := "sample1_city_updated"
+	level := "sample1_level_updated"
+	user_id := 1
+	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
+	req, rec := createUpdateRequest(bosyu_json, token)
+
+	contents := e.NewContext(req, rec)
+	exec := middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
+	res := exec
+
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusNotFound, code)
+	}
+
+	// 2.TitleやAboutが空欄
+	title = ""
+	about = ""
+	id = 1
+	bosyu_json = fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
+	req, rec = createUpdateRequest(bosyu_json, token)
+
+	contents = e.NewContext(req, rec)
+	exec = middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
+	res = exec
+
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusBadRequest, code)
+	}
+
+	//3. JWTの認証が未通過
+	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
+	req, rec = createPostRequest(bosyu_json, token)
+	contents = e.NewContext(req, rec)
+	exec = middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
+	res = exec
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusNotFound, code)
+	}
 }
 //
 //// !! 1.存在するID指定 2. IDが存在しないパターン 3. 0になったときerror吐くパターン
@@ -271,6 +382,16 @@ func createTokenFromSomeUser()(string, error) {
 func createPostRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
 	bodyReader := strings.NewReader(bosyu_json)
 	req := httptest.NewRequest("POST", "/api/bosyu/create", bodyReader)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
+	rec := httptest.NewRecorder()
+	return req, rec
+}
+
+func createUpdateRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
+	bodyReader := strings.NewReader(bosyu_json)
+	req := httptest.NewRequest("PUT", "/api/bosyu/update", bodyReader)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
