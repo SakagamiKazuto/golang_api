@@ -68,4 +68,5 @@ func DeleteTestData() {
 	if err := ts.Error; err != nil {
 		ts.Rollback()
 	}
+	return
 }

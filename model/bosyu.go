@@ -35,16 +35,16 @@ func FindBosyu(user_id uint, db *gorm.DB) []Bosyu {
 	db.Where("user_id = ? AND deleted_at IS NULL", user_id).Find(&bosyus)
 	return bosyus
 }
-//
-//func UpdateBosyu(b *Bosyu) {
-//	db.Model(b).Update(map[string]interface{}{
-//		"title": b.Title,
-//		"about": b.About,
-//		"prefecture": b.Prefecture,
-//		"city": b.City,
-//		"level": b.Level,
-//	})
-//}
+
+func UpdateBosyu(b *Bosyu, db *gorm.DB) {
+	db.Model(b).Update(map[string]interface{}{
+		"title":      b.Title,
+		"about":      b.About,
+		"prefecture": b.Prefecture,
+		"city":       b.City,
+		"level":      b.Level,
+	})
+}
 //
 //func DeleteBosyu(bosyu_id uint) {
 //	db.Delete(&Bosyu{}, bosyu_id)

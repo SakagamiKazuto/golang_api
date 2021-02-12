@@ -122,6 +122,17 @@ func TestCreateBosyuHandlerError(t *testing.T) {
 		code := getErrorStatusCode(res)
 		assert.Equal(t, http.StatusBadRequest, code)
 	}
+
+	//3. JWTの認証が未通過
+	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
+	req, rec = createPostRequest(bosyu_json, token)
+	contents = e.NewContext(req, rec)
+	exec = middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
+	res = exec
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusNotFound, code)
+	}
 }
 
 
@@ -192,25 +203,36 @@ func TestGetBosyuHandlerError(t *testing.T) {
 		code := getErrorStatusCode(res)
 		assert.Equal(t, http.StatusBadRequest, code)
 	}
+
+	//3. JWTの認証が未通過
+	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
+	req, rec = createGetRequest("1", token)
+	contents = e.NewContext(req, rec)
+	exec = middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
+	res = exec
+	if assert.Error(t, res) {
+		code := getErrorStatusCode(res)
+		assert.Equal(t, http.StatusNotFound, code)
+	}
 }
-//
-//func TestUpdateBosyu(t *testing.T) {
-//	e := echo.New()
-//
-//	// テスト用リクエスト生成
-//	bosyu_json := `{"id": 1, "title": "sample_title", "about": "sample_about", "pref": "香川県", "city": "高松市", "level": "player", "user_id": 1}`
-//	bodyReader := strings.NewReader(bosyu_json)
-//	req := httptest.NewRequest("PUT", "/api/bosyu/update", bodyReader)
-//	req.Header.Add("Content-Type", "application/json")
-//	req.Header.Add("Accept", "application/json")
-//	rec := httptest.NewRecorder()
-//
-//	contents := e.NewContext(req, rec)
-//
-//	assert.NoError(t, handler.UpdateBosyu(contents))
-//	assert.Equal(t, http.StatusCreated, rec.Code)
-//	assert.Contains(t, rec.Body.String(), "高松市")
-//}
+
+func TestUpdateBosyu(t *testing.T) {
+	e := echo.New()
+
+	// テスト用リクエスト生成
+	bosyu_json := `{"id": 1, "title": "sample_title", "about": "sample_about", "pref": "香川県", "city": "高松市", "level": "player", "user_id": 1}`
+	bodyReader := strings.NewReader(bosyu_json)
+	req := httptest.NewRequest("PUT", "/api/bosyu/update", bodyReader)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	rec := httptest.NewRecorder()
+
+	contents := e.NewContext(req, rec)
+
+	assert.NoError(t, handler.UpdateBosyu(contents))
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	assert.Contains(t, rec.Body.String(), "高松市")
+}
 //
 //// !! 1.存在するID指定 2. IDが存在しないパターン 3. 0になったときerror吐くパターン
 //func TestDeleteBosyu(t *testing.T) {

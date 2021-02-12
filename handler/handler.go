@@ -12,11 +12,6 @@ import (
 	"work/model"
 )
 
-/* Tasks
-!!JWT入れた際の認証のロジック追加
-!!BosyuGetに関してparamがblankだった場合、勝手に0が入る件解決
-*/
-
 // CreateBosyu is creating bosyu.
 // @Summary create bosyu
 // @Description create bosyu in a group
@@ -50,6 +45,15 @@ func CreateBosyu(c echo.Context) error {
 	return c.JSON(http.StatusCreated, bosyu)
 }
 
+// GetBosyu is getting bosyu.
+// @Summary get bosyu
+// @Description get bosyu in a group
+// @Accept  json
+// @Produce  json
+// @param user_id query string true "user_id which has bosyus"
+// @Success 200 {object} []model.Bosyu
+// @Failure 400,404 {object} echo.HTTPError
+// @Router /api/bosyu/get [get]
 func GetBosyu(c echo.Context) error {
 	//JWTを入れた際に必要になるロジック
 	if CheckHasLogined(c) == false {
@@ -59,14 +63,14 @@ func GetBosyu(c echo.Context) error {
 		}
 	}
 
-	if c.QueryParam("user_id") == "" {
+
+	user_id, err := strconv.ParseUint(c.QueryParam("user_id"), 10, 32)
+	if err != nil {
 		return &echo.HTTPError{
 			Code:    http.StatusBadRequest,
-			Message: "Blank user_id is invalid parameter",
+			Message: "invalid user_id parameter",
 		}
 	}
-
-	user_id, _ := strconv.ParseUint(c.QueryParam("user_id"), 10, 32)
 
 	bosyus := model.FindBosyu(uint(user_id), db.DB)
 	if len(bosyus) == 0 {
@@ -78,24 +82,24 @@ func GetBosyu(c echo.Context) error {
 	return c.JSON(http.StatusOK, bosyus)
 }
 
-//func UpdateBosyu(c echo.Context) error {
-//	// JWTを入れた際に必要になるロジック追加
-//	bosyu := new(model.Bosyu)
-//	if err := c.Bind(bosyu); err != nil {
-//		return err
-//	}
-//
-//	if bosyu.Title == "" || bosyu.About == "" {
-//		return &echo.HTTPError{
-//			Code:    http.StatusBadRequest,
-//			Message: "invalid to Title or About fields",
-//		}
-//	}
-//
-//	model.UpdateBosyu(bosyu)
-//
-//	return c.JSON(http.StatusCreated, bosyu)
-//}
+func UpdateBosyu(c echo.Context) error {
+	// JWTを入れた際に必要になるロジック追加
+	bosyu := new(model.Bosyu)
+	if err := c.Bind(bosyu); err != nil {
+		return err
+	}
+
+	if bosyu.Title == "" || bosyu.About == "" {
+		return &echo.HTTPError{
+			Code:    http.StatusBadRequest,
+			Message: "invalid to Title or About fields",
+		}
+	}
+
+	model.UpdateBosyu(bosyu, db.DB)
+
+	return c.JSON(http.StatusCreated, bosyu)
+}
 //
 //func DeleteBosyu(c echo.Context) error {
 //	// JWTを入れた際にはロジック追加
