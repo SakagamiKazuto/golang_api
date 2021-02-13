@@ -67,9 +67,9 @@ func Signup(c echo.Context) error {
 // @Description create token in a group
 // @Accept  json
 // @Produce  json
-// @success 200 {body} string "jwt token which you can use to request /api routings"
+// @success 200 {object} object{token=string} "jwt token which you can use to request /api routings"
 // @Failure 400,401 {object} echo.HTTPError
-// @Router /signup [post]
+// @Router /login [post]
 func Login(c echo.Context) error {
 	u := new(model.User)
 	if err := c.Bind(u); err != nil {

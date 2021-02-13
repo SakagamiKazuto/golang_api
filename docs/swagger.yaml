@@ -175,7 +175,7 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
       summary: create bosyu
-  /signup:
+  /login:
     post:
       consumes:
       - application/json
@@ -186,7 +186,12 @@ paths:
         "200":
           description: jwt token which you can use to request /api routings
           schema:
-            type: body
+            allOf:
+            - type: object
+            - properties:
+                token:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema:
@@ -196,4 +201,25 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
       summary: create jwt token
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: create user in a group
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: create user
 swagger: "2.0"
