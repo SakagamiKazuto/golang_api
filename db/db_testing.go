@@ -30,7 +30,7 @@ func InsertTestData() {
 	ts := DB.Begin()
 	defer ts.Commit()
 
-	ts.Create(&model.User{Name: "User1", Mail: "sample1@gmail.com", Password: "123", Model: gorm.Model{ID: 1}},
+	ts.Create(&model.User{Name: "sample1", Mail: "sample1@gmail.com", Password: "123", Model: gorm.Model{ID: 1}},
 	)
 
 

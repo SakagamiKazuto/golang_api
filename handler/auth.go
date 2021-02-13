@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	//"log"
 	"net/http"
 	//"os"
@@ -10,8 +11,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"work/model"
 	"work/db"
+	"work/model"
 )
 
 type jwtCustomClaims struct {
@@ -29,11 +30,14 @@ var Config = middleware.JWTConfig{
 	SigningKey: signingKey,
 }
 
-/*
-ユーザー登録に際して呼ばれるhandler
-既存で存在するか否かを判定後、
-DBにuser情報を登録する
-*/
+// Signup is creating user.
+// @Summary create user
+// @Description create user in a group
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} model.User
+// @Failure 400,409 {object} echo.HTTPError
+// @Router /signup [post]
 func Signup(c echo.Context) error {
 	user := new(model.User)
 	if err := c.Bind(user); err != nil {
@@ -59,17 +63,25 @@ func Signup(c echo.Context) error {
 	return c.JSON(http.StatusCreated, user)
 }
 
+// Login is creating jwt token.
+// @Summary create jwt token
+// @Description create token in a group
+// @Accept  json
+// @Produce  json
+// @success 200 {body} string "jwt token which you can use to request /api routings"
+// @Failure 400,401 {object} echo.HTTPError
+// @Router /signup [post]
 func Login(c echo.Context) error {
 	u := new(model.User)
 	if err := c.Bind(u); err != nil {
 		return err
 	}
 
-	user := model.FindUser(&model.User{Mail: u.Mail}, db.DB)
-	if user.ID == 0 || user.Password != u.Password {
+	user := model.FindUser(&model.User{Mail: u.Mail, Password: u.Password}, db.DB)
+	if user.ID == 0 {
 		return &echo.HTTPError{
-			Code:    http.StatusUnauthorized,
-			Message: "invalid email or password",
+			Code: http.StatusUnauthorized,
+			Message: fmt.Sprintf("can't find user.\n Mail:%v, Pass:%v", u.Mail, u.Password),
 		}
 	}
 

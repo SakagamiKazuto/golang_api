@@ -6,8 +6,6 @@
       <change beforePath="$PROJECT_DIR$/db/db_testing.go" beforeDir="false" afterPath="$PROJECT_DIR$/db/db_testing.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handler/auth.go" beforeDir="false" afterPath="$PROJECT_DIR$/handler/auth.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/model/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/router.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/bosyu_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/test/bosyu_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/user_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/test/user_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

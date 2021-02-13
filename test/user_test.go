@@ -30,7 +30,7 @@ func TestSignupNormal(t *testing.T) {
 	Tel := "sample_tel"
 	Mail := "sample_mail"
 	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec := createUserPostRequest(user_json)
+	req, rec := createUserSignupRequest(user_json)
 
 	contents := e.NewContext(req, rec)
 	if assert.NoError(t, handler.Signup(contents)) {
@@ -48,7 +48,7 @@ func TestSignupError(t *testing.T) {
 	Tel := "sample_tel"
 	Mail := ""
 	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec := createUserPostRequest(user_json)
+	req, rec := createUserSignupRequest(user_json)
 
 	contents := e.NewContext(req, rec)
 	res := handler.Signup(contents)
@@ -61,7 +61,7 @@ func TestSignupError(t *testing.T) {
 	Password = "sample_password"
 	Name = "sample_name"
 	user_json = fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec = createUserPostRequest(user_json)
+	req, rec = createUserSignupRequest(user_json)
 
 	contents = e.NewContext(req, rec)
 	res = handler.Signup(contents)
@@ -71,31 +71,54 @@ func TestSignupError(t *testing.T) {
 }
 
 
-//func TestLogin(t *testing.T) {
-//	e := echo.New()
-//
-//	// ↑のテストでDBに追加済み
-//	user_json := `{"Password": "dummy", "Name": "dummy_account", "address": "京都市","Tel": "000-0000-0000", "Mail": "sample@gmail.com"}`
-//	bodyReader := strings.NewReader(user_json)
-//	req := httptest.NewRequest("POST", "/login", bodyReader)
-//	req.Header.Add("Content-Type", "application/json")
-//	req.Header.Add("Accept", "application/json")
-//	rec := httptest.NewRecorder()
-//
-//	contents := e.NewContext(req, rec)
-//
-//	assert.NoError(t, handler.Login(contents))
-//	assert.Equal(t, http.StatusOK, rec.Code)
-//	// 本当はJSONの中身にuser_jsonの値それぞれが含むかをチェックしたいが
-//	// rec.Bodyに\などの記号が挿入されるのでこの程度のチェックで留める
-//	assert.Contains(t, rec.Body.String(), "token")
-//}
+/*
+LoginTests
+Handler:
+Normal
+1. status200
 
+Error
+1. Mail, Passwordの値に基づくUserが存在しない
+*/
+func TestLoginNormal(t *testing.T) {
+	e := echo.New()
+
+	Mail := "sample1@gmail.com"
+	Password := "123"
+	Name := "sample_name"
+	Address:= "sample_address"
+	Tel := "sample_tel"
+	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
+	req, rec := createUserLoginRequest(user_json)
+
+	contents := e.NewContext(req, rec)
+	if assert.NoError(t, handler.Login(contents)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+	}
+}
+
+func TestLoginError(t *testing.T) {
+	e := echo.New()
+
+	// 1.Mail, Passwordの値に基づくUserが存在しない
+	Mail := "not_exist@gmail.com"
+	Password := "9999999999"
+	Name := "sample_name"
+	Address:= "sample_address"
+	Tel := "sample_tel"
+	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
+	req, rec := createUserLoginRequest(user_json)
+
+	contents := e.NewContext(req, rec)
+	if assert.Error(t, handler.Login(contents)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+	}
+}
 
 /*
 	common methods
  */
-func createUserPostRequest(user_json string) (*http.Request, *httptest.ResponseRecorder) {
+func createUserSignupRequest(user_json string) (*http.Request, *httptest.ResponseRecorder) {
 	bodyReader := strings.NewReader(user_json)
 	req := httptest.NewRequest("POST", "/signup", bodyReader)
 	req.Header.Add("Content-Type", "application/json")
@@ -104,6 +127,14 @@ func createUserPostRequest(user_json string) (*http.Request, *httptest.ResponseR
 	return req, rec
 }
 
+func createUserLoginRequest(user_json string) (*http.Request, *httptest.ResponseRecorder) {
+	bodyReader := strings.NewReader(user_json)
+	req := httptest.NewRequest("POST", "/login", bodyReader)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	rec := httptest.NewRecorder()
+	return req, rec
+}
 
 
 

@@ -175,4 +175,25 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
       summary: create bosyu
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: create token in a group
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: jwt token which you can use to request /api routings
+          schema:
+            type: body
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: create jwt token
 swagger: "2.0"
