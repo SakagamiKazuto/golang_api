@@ -71,13 +71,19 @@ func TestCreateBosyuModel(t *testing.T) {
 func TestCreateBosyuHandlerNormal(t *testing.T) {
 	e := echo.New()
 
-	bosyu_json := `{"title": "sample_title", "about": "sample_about", "pref": "愛媛県", "city": "松山市", "level": "player", "user_id": 123123}`
+	title := "sample_title"
+	about := "sample_about"
+	pref:= "sample_pref"
+	city := "sample_city"
+	level := "sample_level"
+	user_id := 1
+	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v}", title, about, pref, city, level, user_id)
 	token, err := createTokenFromSomeUser()
 		if err != nil {
 			t.Errorf("got error like: %+v", err)
 		}
 
-	req, rec := createPostRequest(bosyu_json, token)
+	req, rec := createBosyuPostRequest(bosyu_json, token)
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
@@ -93,9 +99,14 @@ func TestCreateBosyuHandlerError(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	// Titleが空欄
-	bosyu_json := `{"title": "", "about": "sample_about", "pref": "愛媛県", "city": "松山市", "level": "player", "user_id": 123123}`
-	req, rec := createPostRequest(bosyu_json, token)
+	title := ""
+	about := "sample_about"
+	pref:= "sample_pref"
+	city := "sample_city"
+	level := "sample_level"
+	user_id := 1
+	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v}", title, about, pref, city, level, user_id)
+	req, rec := createBosyuPostRequest(bosyu_json, token)
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
@@ -108,9 +119,10 @@ func TestCreateBosyuHandlerError(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, code)
 	}
 
-	// Aboutが空欄
-	bosyu_json = `{"title": "sample_title", "about": "", "pref": "愛媛県", "city": "松山市", "level": "player", "user_id": 123123}`
-	req, rec = createPostRequest(bosyu_json, token)
+	title = "sample"
+	about = ""
+	bosyu_json = fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v}", title, about, pref, city, level, user_id)
+	req, rec = createBosyuPostRequest(bosyu_json, token)
 
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
@@ -123,7 +135,7 @@ func TestCreateBosyuHandlerError(t *testing.T) {
 
 	//3. JWTの認証が未通過
 	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createPostRequest(bosyu_json, token)
+	req, rec = createBosyuPostRequest(bosyu_json, token)
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
 	res = exec
@@ -163,7 +175,7 @@ func TestGetBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	req, rec := createGetRequest("1", token)
+	req, rec := createBosyuGetRequest("1", token)
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
 
@@ -181,7 +193,7 @@ func TestGetBosyuHandlerError(t *testing.T) {
 	}
 
 	//1. データがDBに存在しない
-	req, rec := createGetRequest("99999", token)
+	req, rec := createBosyuGetRequest("99999", token)
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
 	res := exec
@@ -192,7 +204,7 @@ func TestGetBosyuHandlerError(t *testing.T) {
 
 
 	//2. user_idの値がBlank
-	req, rec = createGetRequest("", token)
+	req, rec = createBosyuGetRequest("", token)
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
 	res = exec
@@ -203,7 +215,7 @@ func TestGetBosyuHandlerError(t *testing.T) {
 
 	//3. JWTの認証が未通過
 	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createGetRequest("1", token)
+	req, rec = createBosyuGetRequest("1", token)
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
 	res = exec
@@ -273,15 +285,15 @@ func TestUpdateBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	title := "sample1_title_updated"
-	about := "sample1_about_updated"
-	pref:= "sample1_pref_updated"
-	city := "sample1_city_updated"
-	level := "sample1_level_updated"
+	title := "sample3_title_updated"
+	about := "sample3_about_updated"
+	pref:= "sample3_pref_updated"
+	city := "sample3_city_updated"
+	level := "sample3_level_updated"
 	user_id := 1
 	id := 3
 	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
-	req, rec := createUpdateRequest(bosyu_json, token)
+	req, rec := createBosyuUpdateRequest(bosyu_json, token)
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
@@ -306,7 +318,7 @@ func TestUpdateBosyuHandlerError(t *testing.T) {
 	level := "sample1_level_updated"
 	user_id := 1
 	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
-	req, rec := createUpdateRequest(bosyu_json, token)
+	req, rec := createBosyuUpdateRequest(bosyu_json, token)
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
@@ -322,7 +334,7 @@ func TestUpdateBosyuHandlerError(t *testing.T) {
 	about = ""
 	id = 1
 	bosyu_json = fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
-	req, rec = createUpdateRequest(bosyu_json, token)
+	req, rec = createBosyuUpdateRequest(bosyu_json, token)
 
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
@@ -335,7 +347,7 @@ func TestUpdateBosyuHandlerError(t *testing.T) {
 
 	//3. JWTの認証が未通過
 	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createPostRequest(bosyu_json, token)
+	req, rec = createBosyuUpdateRequest(bosyu_json, token)
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
 	res = exec
@@ -344,7 +356,7 @@ func TestUpdateBosyuHandlerError(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, code)
 	}
 }
-//
+
 
 /*
 DeleteBosyuTests
@@ -387,7 +399,7 @@ func TestDeleteBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	req, rec := createDeleteRequest("1", token)
+	req, rec := createBosyuDeleteRequest("3", token)
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
@@ -404,7 +416,7 @@ func TestDeleteBosyuHandlerError(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 	// 1.DBにBosyuのIDが存在しない
-	req, rec := createDeleteRequest("0", token)
+	req, rec := createBosyuDeleteRequest("0", token)
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
@@ -416,7 +428,7 @@ func TestDeleteBosyuHandlerError(t *testing.T) {
 	}
 
 	//2. bosyu_idが正しくない値
-	req, rec = createDeleteRequest("invalid_param", token)
+	req, rec = createBosyuDeleteRequest("invalid_param", token)
 
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
@@ -429,7 +441,7 @@ func TestDeleteBosyuHandlerError(t *testing.T) {
 
 	//3. JWTの認証が未通過
 	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createPostRequest("1", token)
+	req, rec = createBosyuDeleteRequest("1", token)
 	contents = e.NewContext(req, rec)
 	exec = middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
 	res = exec
@@ -439,6 +451,10 @@ func TestDeleteBosyuHandlerError(t *testing.T) {
 	}
 }
 
+/*
+	common methods
+	!!別ファイルに移動させてまとめて管理する
+ */
 func getDBMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -458,7 +474,7 @@ func createTokenFromSomeUser()(string, error) {
 	return token, err
 }
 
-func createPostRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
+func createBosyuPostRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
 	bodyReader := strings.NewReader(bosyu_json)
 	req := httptest.NewRequest("POST", "/api/bosyu/create", bodyReader)
 	req.Header.Add("Content-Type", "application/json")
@@ -468,7 +484,7 @@ func createPostRequest(bosyu_json string, token string) (*http.Request, *httptes
 	return req, rec
 }
 
-func createUpdateRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
+func createBosyuUpdateRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
 	bodyReader := strings.NewReader(bosyu_json)
 	req := httptest.NewRequest("PUT", "/api/bosyu/update", bodyReader)
 	req.Header.Add("Content-Type", "application/json")
@@ -478,20 +494,19 @@ func createUpdateRequest(bosyu_json string, token string) (*http.Request, *httpt
 	return req, rec
 }
 
-func createGetRequest(uID string, token string) (*http.Request, *httptest.ResponseRecorder) {
+func createBosyuGetRequest(uID string, token string) (*http.Request, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest("GET", fmt.Sprintf("/api/bosyu/get?user_id=%v", uID), nil)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
 	rec := httptest.NewRecorder()
 	return req, rec
 }
 
-func createDeleteRequest(bID string, token string) (*http.Request, *httptest.ResponseRecorder) {
+func createBosyuDeleteRequest(bID string, token string) (*http.Request, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest("DELETE", fmt.Sprintf("/api/bosyu/delete?bosyu_id=%v", bID), nil)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
 	rec := httptest.NewRecorder()
 	return req, rec
 }
-
 
 func getErrorStatusCode(res interface{}) int {
 	code := reflect.Indirect(reflect.ValueOf(res)).Field(0).Interface().(int)

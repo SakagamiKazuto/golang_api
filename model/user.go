@@ -16,8 +16,9 @@ type User struct {
 	Bosyu    []Bosyu `gorm:"foreignkey:UserID"`
 }
 
-func CreateUser(user *User, db *gorm.DB) {
+func CreateUser(user *User, db *gorm.DB) *User {
 	db.Create(user)
+	return user
 }
 
 // !!パスワードも使ってログインするように実装を変更したい

@@ -20,10 +20,9 @@ func newRouter() *echo.Echo {
 	e.POST("/signup", handler.Signup)       // POST /signup
 	e.POST("/login", handler.Login)         // POST /login
 
+	// JWTの認証を必要とするAPIは以下に
 	api := e.Group("/api")
-
-	// apiテストにHandler定義してmockDB生成する方針でやった結果この記述が必要になった
-	api.Use(middleware.JWTWithConfig(handler.Config))   // /api 下はJWTの認証が必要
+	api.Use(middleware.JWTWithConfig(handler.Config))
 	api.GET("/bosyu/get", handler.GetBosyu)
 	api.POST("/bosyu/create", handler.CreateBosyu)
 	api.PUT("/bosyu/update", handler.UpdateBosyu)

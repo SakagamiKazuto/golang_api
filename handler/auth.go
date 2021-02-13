@@ -47,7 +47,7 @@ func Signup(c echo.Context) error {
 		}
 	}
 
-	// メールアドレスで重複があれば登録を防ぐ仕様
+	// メールアドレスで重複があれば登録を防ぐ
 	if u := model.FindUser(&model.User{Mail: user.Mail}, db.DB); u.ID != 0 {
 		return &echo.HTTPError{
 			Code:    http.StatusConflict,
@@ -55,8 +55,7 @@ func Signup(c echo.Context) error {
 		}
 	}
 
-	model.CreateUser(user, db.DB)
-
+	user = model.CreateUser(user, db.DB)
 	return c.JSON(http.StatusCreated, user)
 }
 
