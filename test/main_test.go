@@ -3,6 +3,7 @@ package test
 import (
 	"os"
 	"testing"
+
 	"work/db"
 )
 
@@ -12,7 +13,6 @@ import (
 1. テストDB接続
 2. サンプルデータの挿入
 3. テストの実行
-//4. データの初期化
  */
 func TestMain(m *testing.M) {
 	db.ConnectTestDB()

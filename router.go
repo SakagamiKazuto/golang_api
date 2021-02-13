@@ -1,11 +1,11 @@
 package main
 
 import (
-	//"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/swaggo/echo-swagger"
 	_ "work/docs"
+
 	"work/handler"
 )
 
@@ -17,10 +17,10 @@ func newRouter() *echo.Echo {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.POST("/signup", handler.Signup)       // POST /signup
-	e.POST("/login", handler.Login)         // POST /login
+	e.POST("/signup", handler.Signup)
+	e.POST("/login", handler.Login)
 
-	// JWTの認証を必要とするAPIは以下に
+	// JWTの認証を必要とするAPIは以下に記述
 	api := e.Group("/api")
 	api.Use(middleware.JWTWithConfig(handler.Config))
 	api.GET("/bosyu/get", handler.GetBosyu)

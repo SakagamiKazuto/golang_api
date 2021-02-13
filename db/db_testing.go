@@ -1,11 +1,11 @@
 package db
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"time"
 
-	//"time"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+
 	"work/model"
 )
 
@@ -30,16 +30,10 @@ func InsertTestData() {
 	ts := DB.Begin()
 	defer ts.Commit()
 
-	ts.Create(&model.User{Name: "sample1", Mail: "sample1@gmail.com", Password: "123", Model: gorm.Model{ID: 1}},
-	)
+	// User Data
+	ts.Create(&model.User{Name: "sample1", Mail: "sample1@gmail.com", Password: "123", Model: gorm.Model{ID: 1}})
 
-
-	//!! 本当は配列でスマートにかけるようにしたい
-	//bosyus := []model.Bosyu{
-	//	{Title: "sample1", About: "sample1", UserID: 1, Model: gorm.Model{DeletedAt: nowP}},
-	//	{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{DeletedAt: nowP}},
-	//}
-
+	// Bosyu Data
 	// normal pattern1
 	ts.Create(&model.Bosyu{Title: "sample1", About: "sample1", UserID: 1, Model: gorm.Model{ID:1}})
 	// deleted_at is not Null
@@ -53,12 +47,6 @@ func InsertTestData() {
 	return
 }
 
-func getTimeNowPointer() *time.Time {
-	now := time.Now()
-	nowP := &now
-	return nowP
-}
-
 func DeleteTestData() {
 	ts := DB.Begin()
 	defer ts.Commit()
@@ -69,3 +57,10 @@ func DeleteTestData() {
 	}
 	return
 }
+
+func getTimeNowPointer() *time.Time {
+	now := time.Now()
+	nowP := &now
+	return nowP
+}
+

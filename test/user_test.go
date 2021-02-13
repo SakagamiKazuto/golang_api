@@ -2,12 +2,14 @@ package test
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+
 	"work/handler"
 )
 
@@ -115,9 +117,8 @@ func TestLoginError(t *testing.T) {
 	}
 }
 
-/*
-	common methods
- */
+
+// CommonMethod's
 func createUserSignupRequest(user_json string) (*http.Request, *httptest.ResponseRecorder) {
 	bodyReader := strings.NewReader(user_json)
 	req := httptest.NewRequest("POST", "/signup", bodyReader)

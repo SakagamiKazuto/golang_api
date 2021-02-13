@@ -2,18 +2,9 @@ package model
 
 import (
 	"fmt"
-	//"fmt"
-	//"log"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
-
-/* TASKS
-!!modelとhandleでメソッド名がかぶってるの良くない気がする
-!!FindBosyuで該当のrecordがない場合でも一応のjsonが入ったテーブルを返してしまう → if row = 0; return error処理必要
-!!FindBosyuで検索機能作る際にはprefやcityを値として取得するための再設計が必須
-!!それぞれのメソッドがerrorを返す設計になってないのでsql部分でバグったときに追跡が面倒
-*/
 
 type Bosyu struct {
 	gorm.Model

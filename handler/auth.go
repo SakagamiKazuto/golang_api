@@ -2,15 +2,13 @@ package handler
 
 import (
 	"fmt"
-	//"log"
 	"net/http"
-	//"os"
 	"time"
 
-	//"time"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+
 	"work/db"
 	"work/model"
 )
@@ -21,7 +19,8 @@ type jwtCustomClaims struct {
 	jwt.StandardClaims
 }
 
-// "secret"書き換える
+//ソースコード公開用
+//デプロイ時は"secret"を書き換える
 var signingKey = []byte("secret")
 //var signingKey = []byte(os.Getenv("SIGNINGKEY"))
 
@@ -109,8 +108,7 @@ func CreateToken(ID uint, Mail string) (string, error) {
 	return t, err
 }
 
-// API側で認証の有無を判定するときに必要なロジック
-// jwt取れないとき、エラー返すように実装したい
+// リクエストのBodyからTokenを受け取ってUser_idに変換して返す
 func userIDFromToken(c echo.Context) uint {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*jwtCustomClaims)

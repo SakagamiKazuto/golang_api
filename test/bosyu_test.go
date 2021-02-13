@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	//"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -451,10 +450,7 @@ func TestDeleteBosyuHandlerError(t *testing.T) {
 	}
 }
 
-/*
-	common methods
-	!!別ファイルに移動させてまとめて管理する
- */
+// CommonMethod's
 func getDBMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
