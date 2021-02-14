@@ -7,7 +7,9 @@
 3. gorm
 4. jwt-go
 5. testing
-6. go-sqlmock
+6. swagger
+7. docker
+8. heroku
 
 # データ構成とAPIについて
 このAPIには「Users」と「Bosyus」の2つのテーブルがあり、Users→Bosyusがhas manyの関係で結ばれています。
