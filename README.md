@@ -92,7 +92,7 @@ tree -d -I 'data'
 それぞれのテストコードはTest(FuncName)(PackageName)(Normal|Error)といった規則に基づき命名されています。
 その上で、以下のように網羅しているパターンをコメントで明示した上でNormalでは正常系、Errorでは異常系のパターンをテストしています。
 
-また一部では[go-sqlmock](https://github.com/DATA-DOG/go-sqlmock)を試しに利用を試みましたが、
+また一部では[go-sqlmock](https://github.com/DATA-DOG/go-sqlmock)の利用を試みましたが、
 
 発行されたクエリの差分を逐一確認する手法は人間にはかなりつらいということが判明したため、あくまでもデータの動きによるテストを実施しています。
 ```
