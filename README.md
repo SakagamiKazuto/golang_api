@@ -81,7 +81,18 @@ tree -d -I 'data'
 # テストコードについて
 基本的にパッケージhandlerおよびmodelの関数に対して、正常系異常系を網羅するように記述しました。
 
-それぞれのテストコードはTest<FuncName><PackageName><Normal | Error>といった規則に基づき命名され、Normalでは正常系、Errorでは異常系のパターンをテストしています。
+それぞれのテストコードはTest<FuncName><PackageName><Normal | Error>といった規則に基づき命名され、以下のようにパターンをコメントで明示した上でNormalでは正常系、Errorでは異常系のパターンをテストしています。
+```
+/*
+SignupTests
+Handler:
+Normal
+1. status201
+Error
+1. Name, Mail, Passwordのいずれかが空欄
+2. MailがすでにUsersのテーブルに存在する
+*/
+```
 
 なおテストの実行結果は以下のコードで確認できます。
 ```
