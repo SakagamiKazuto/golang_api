@@ -72,14 +72,14 @@ tree -d -I 'data'
 # データベースとテストについて
 このAPIにおいてデータベースは3つ登場します。
 
-ひとつがherokuにおけるDB、ふたつめがローカルにおいて作動するgolang_mysql_dev、そしてテスト用に用意されたgolang_mysql_testです。
+１つ目がherokuにおけるDB、２つ目がローカルにおいて作動するgolang_mysql_dev、そして３つ目がテスト用に用意されたgolang_mysql_testです。
 
 テスト用のデータベースはgolangにおいてテストDBのmock化を調査したところ、handlerなどを含むテストに適切なライブラリが存在しないことが判明したため用意しました。
 
 なおテストDBのcreateはdocker-compose up dbの初回実行時に行われ、その後テーブル内のデータはテスト実行時に初期化されます。
 
 # テストコードについて
-基本的にパッケージhandlerおよびmodelの関数に対して、正常系異常系を網羅するように記述しました。
+基本的にパッケージhandlerおよびmodelの関数に対して、正常、異常系を網羅するように記述しました。
 
 それぞれのテストコードはTest(FuncName)(PackageName)(Normal|Error)といった規則に基づき命名され、以下のようにパターンをコメントで明示した上でNormalでは正常系、Errorでは異常系のパターンをテストしています。
 ```
