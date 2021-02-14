@@ -19,6 +19,7 @@ Usersに関してはSignup(create)とLogin → [ソースコード](https://gith
 Bosyusに関してはCRUDのAPIを作成しました →[ソースコード](https://github.com/SakagamiKazuto/golang_api/blob/main/handler/handler.go)
 
 また基本的なAPIの仕様はこちらでも確認可能です。
+
 <https://golang-api-portfolio.herokuapp.com/swagger/index.html>
 
 # 起動手順
@@ -37,7 +38,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"Name": "sample1", "Mail":
 2. Login User
 curl -X POST -H "Content-Type: application/json" -d '{"Name": "sample1", "Mail":"sample1@gmail.com", "Password": "123"}' localhost:9999/login
 
-
 3. CREATE bosyu
 curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-Token>"  -d '{"title": "sample_title", "about": "sample_about", "pref": "愛媛県", "city": "松山市", "level": "player", "user_id": 1}' localhost:9999/api/bosyu/create
 
@@ -52,7 +52,7 @@ curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-T
 このAPIは以下のような流れでパッケージの参照を行い、逆参照は行わない方針で実装しました。
 ```
 handler → db
-↓		↓
+↓  ↓
 model
 ```
 またディレクトリ構成は以下のコマンドで確認いただけます。
@@ -80,7 +80,9 @@ tree -d -I 'data'
 
 # テストコードについて
 基本的にパッケージhandlerおよびmodelの関数に対して、正常系異常系を網羅するように記述しました。
+
 それぞれのテストコードはTest<FuncName><PackageName><Normal | Error>といった規則に基づき命名され、Normalでは正常系、Errorでは異常系のパターンをテストしています。
+
 なおテストの実行結果は以下のコードで確認できます。
 ```
 docker-compose run api go test -v ./test
