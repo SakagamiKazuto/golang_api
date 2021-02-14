@@ -77,7 +77,7 @@ tree -d -I 'data'
 └── test
 ```
 
-# データベースとテストについて
+# データベースについて
 このAPIにおいてデータベースは3つ登場します。
 
 １つ目がherokuにおけるDB、２つ目がローカルにおいて作動するgolang_mysql_dev、そして３つ目がテスト用に用意されたgolang_mysql_testです。
@@ -91,6 +91,10 @@ tree -d -I 'data'
 
 それぞれのテストコードはTest(FuncName)(PackageName)(Normal|Error)といった規則に基づき命名されています。
 その上で、以下のように網羅しているパターンをコメントで明示した上でNormalでは正常系、Errorでは異常系のパターンをテストしています。
+
+また一部では[go-sqlmock](https://github.com/DATA-DOG/go-sqlmock)を試しに利用を試みましたが、
+
+発行されたクエリの差分を逐一確認する手法は人間にはかなりつらいということが判明したため、あくまでもデータの動きによるテストを実施しています。
 ```
 /*
 SignupTests
