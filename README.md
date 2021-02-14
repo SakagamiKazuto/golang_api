@@ -47,6 +47,14 @@ curl -X GET -H "Authorization: Bearer <JWT-Token>" http://localhost:9999/api/bos
 5. UPDATE bosyu
 curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-Token>"  -d '{"title": "sample_title", "about": "sample_about", "pref": "北海道", "city": "松山市", "level": "player", "user_id": 1, "id": 1}' localhost:9999/api/bosyu/update
 ```
+# 言語とフレームワークについて
+計画段階で今回利用するデータはテーブル2つとAPIが6つという非常にシンプルな構成であったため、
+
+言語には軽量でシンプルにコードを書くことができ、またかねてより一度利用したいと考えていたGolangを採用しました。
+
+フレームワークについては機能性が高いGinや高速処理が可能なGeegoなどとも比較したのですが、比較的シンプルでかつネット上に情報が充実しているという利点からechoを採用しました。
+
+またORMにはRelationが容易であることや比較的記述がシンプルな点からgormを採用しています。
 
 # ディレクトリとパッケージについて
 このAPIは以下のような流れでパッケージの参照を行い、逆参照は行わない方針で実装しました。
@@ -81,7 +89,8 @@ tree -d -I 'data'
 # テストコードについて
 基本的にパッケージhandlerおよびmodelの関数に対して、正常、異常系を網羅するように記述しました。
 
-それぞれのテストコードはTest(FuncName)(PackageName)(Normal|Error)といった規則に基づき命名され、以下のようにパターンをコメントで明示した上でNormalでは正常系、Errorでは異常系のパターンをテストしています。
+それぞれのテストコードはTest(FuncName)(PackageName)(Normal|Error)といった規則に基づき命名されています。
+その上で、以下のように網羅しているパターンをコメントで明示した上でNormalでは正常系、Errorでは異常系のパターンをテストしています。
 ```
 /*
 SignupTests
