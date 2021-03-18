@@ -5,7 +5,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
 	"os"
-	"work/model"
+	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 var DB *gorm.DB

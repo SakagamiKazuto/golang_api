@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	"work/handler"
+	"github.com/SakagamiKazuto/golang_api/handler"
 )
 
 /*

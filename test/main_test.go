@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"work/db"
+	"github.com/SakagamiKazuto/golang_api/db"
 )
 
 /*

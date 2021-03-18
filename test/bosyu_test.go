@@ -12,14 +12,14 @@ import (
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
 
-	"work/common"
-	"work/db"
-	"work/handler"
-	"work/model"
+	"github.com/SakagamiKazuto/golang_api/common"
+	"github.com/SakagamiKazuto/golang_api/db"
+	"github.com/SakagamiKazuto/golang_api/handler"
+	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 
