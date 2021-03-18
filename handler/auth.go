@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
-	"work/db"
-	"work/model"
+	"github.com/SakagamiKazuto/golang_api/db"
+	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 type jwtCustomClaims struct {

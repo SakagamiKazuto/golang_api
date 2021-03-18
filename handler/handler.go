@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/jinzhu/gorm"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
-	"work/db"
-	"work/model"
+	"github.com/SakagamiKazuto/golang_api/db"
+	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 // CreateBosyu is creating bosyu.

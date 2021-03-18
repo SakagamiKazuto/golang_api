@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
-	"work/model"
+	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 /*
