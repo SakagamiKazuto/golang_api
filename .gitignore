@@ -12,11 +12,13 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+src/
+pkg/
 
 # Append Local UnNeeded files
 */.idea
 db/data/
 .gitignore
 .env
+
 

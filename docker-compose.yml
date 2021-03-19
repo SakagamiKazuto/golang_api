@@ -5,8 +5,7 @@ services:
             dockerfile: Dockerfile
             context: .
         volumes:
-            - ./:/go/src/work
-        command: go run main.go router.go
+            - ./:/go/src
         ports:
             - "9999:9999"
         tty: true
