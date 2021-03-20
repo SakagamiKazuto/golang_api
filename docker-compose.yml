@@ -4,12 +4,16 @@ services:
         build:
             dockerfile: Dockerfile.dev
             context: .
-        command: "air -c .air.toml"
         volumes:
             - ./:/go/src
         ports:
             - "9999:9999"
+            - "2345:2345"
         tty: true
+        security_opt:
+            - apparmor:unconfined
+        cap_add:
+            - SYS_PTRACE
     db:
         image: mysql:5.7.31
         container_name: mysql_host

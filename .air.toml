@@ -7,11 +7,13 @@ tmp_dir = "tmp"
 
 [build]
 # Just plain old shell command. You could use `make` as well.
-cmd = "go build -o ./tmp/main ."
+cmd = "go build -gcflags=all='-N -l' -o ./tmp/main ."
 # Binary file yields from `cmd`.
 bin = "tmp/main"
-# Customize binary.
-full_bin = "APP_ENV=dev APP_USER=air ./tmp/main"
+# 1.For NormlMode
+#full_bin = "APP_ENV=dev APP_USER=air ./tmp/main"
+# 2.For DebugMode
+full_bin = "APP_ENV=dev APP_USER=air /go/bin/dlv exec ./tmp/main --headless=true --listen=:2345 --api-version=2 --accept-multiclient"
 # Watch these filename extensions.
 include_ext = ["go", "tpl", "tmpl", "html"]
 # Ignore these filename extensions or directories.
