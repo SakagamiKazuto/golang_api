@@ -1,5 +1,6 @@
 build:
-    docker:
-        web: Dockerfile
-run:
-    web:  go run main.go router.go
+  docker:
+    release:
+       dockerfile: Dockerfile
+       target: runner
+    web: Dockerfile
