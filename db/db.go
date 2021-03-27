@@ -36,7 +36,7 @@ func connectDB() (*gorm.DB, error) {
 		DBName     := os.Getenv("LOCAL_DBNAME")
 		CONNECT = DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
 	}
-	db, err := gorm.Open(Dialect, CONNECT)
+	db, err := gorm.Open("postgres", CONNECT)
 	return db, err
 }
 
