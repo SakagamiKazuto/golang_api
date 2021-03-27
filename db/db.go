@@ -1,11 +1,10 @@
 package db
 
 import (
+	"github.com/SakagamiKazuto/golang_api/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/joho/godotenv"
 	"os"
-	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 var DB *gorm.DB
@@ -14,10 +13,10 @@ const Dialect = "mysql"
 
 func InitDB() {
 	var err error
-	err = godotenv.Load(".env")
-	if err != nil {
-		panic("failed to read .env")
-	}
+	//err = godotenv.Load(".env")
+	//if err != nil {
+	//	panic("failed to read .env")
+	//}
 
 	DB, err = connectDB()
 	if err != nil {
