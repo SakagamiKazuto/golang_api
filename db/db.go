@@ -27,22 +27,16 @@ func InitDB() {
 }
 
 func connectDB() (*gorm.DB, error) {
-	var DBUser string
-	var DBPass string
-	var DBProtocol string
-	var DBName string
-	if os.Getenv("CLEARDB_DATABASE_URL") == "" {
-		DBUser     = os.Getenv("LOCAL_USER")
-		DBPass     = os.Getenv("LOCAL_PASSWORD")
-		DBProtocol = os.Getenv("LOCAL_PROTOCOL")
-		DBName     = os.Getenv("LOCAL_DBNAME")
+	var CONNECT string
+	if os.Getenv("DATABASE_URL") != "" {
+		CONNECT = os.Getenv("DATABASE_URL")
 	} else {
-		DBUser     = os.Getenv("HEROKU_USER")
-		DBPass     = os.Getenv("HEROKU_PASSWORD")
-		DBProtocol = os.Getenv("HEROKU_PROTOCOL")
-		DBName     = os.Getenv("HEROKU_DBNAME")
+		DBUser     := os.Getenv("LOCAL_USER")
+		DBPass     := os.Getenv("LOCAL_PASSWORD")
+		DBProtocol := os.Getenv("LOCAL_PROTOCOL")
+		DBName     := os.Getenv("LOCAL_DBNAME")
+		CONNECT = DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
 	}
-	CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
 	db, err := gorm.Open(Dialect, CONNECT)
 	return db, err
 }
