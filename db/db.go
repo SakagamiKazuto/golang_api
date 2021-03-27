@@ -20,7 +20,8 @@ func InitDB() {
 
 	DB, err = connectDB()
 	if err != nil {
-		panic("failed to connect database")
+		//panic("failed to connect database")
+		panic(err.Error())
 	}
 	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
 }
