@@ -4,6 +4,7 @@ import (
 	"github.com/SakagamiKazuto/golang_api/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"os"
 )
 
