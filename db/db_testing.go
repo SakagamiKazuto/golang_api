@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -13,13 +15,13 @@ import (
 自動テスト実行するにあたり必要な関数はこのファイルに置く
 */
 func ConnectTestDB() {
-	DBUser := "root"
-	DBPass := "root"
-	DBProtocol := "tcp(db:3306)"
-	DBName := "golang_mysql_test"
-	CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
-	var err error
-	DB, err = gorm.Open(Dialect, CONNECT)
+	DBHost := os.Getenv("DB_HOST")
+	DBUser := os.Getenv("DB_USER")
+	DBName := os.Getenv("DB_NAME")
+	DBPass := os.Getenv("DB_PASSWORD")
+	DBPort := os.Getenv("DB_PORT")
+	CONNECT := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",DBHost,DBUser, DBName, DBPass, DBPort)
+	DB, err := gorm.Open(Dialect, CONNECT)
 	if err != nil {
 		panic("failed to connect database")
 	}

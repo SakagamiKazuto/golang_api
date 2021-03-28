@@ -1,49 +1,47 @@
 package db
 
 import (
+	"fmt"
+	"github.com/SakagamiKazuto/golang_api/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
 	"os"
-	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 var DB *gorm.DB
 
-const Dialect = "mysql"
+const Dialect = "postgres"
 
 func InitDB() {
-	var err error
-	err = godotenv.Load(".env")
-	if err != nil {
-		panic("failed to read .env")
-	}
 
-	DB, err = connectDB()
+	DB, err := connectDB()
 	if err != nil {
-		panic("failed to connect database")
+		//panic("failed to connect database")
+		panic(err.Error())
 	}
 	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
 }
 
 func connectDB() (*gorm.DB, error) {
-	var DBUser string
-	var DBPass string
-	var DBProtocol string
-	var DBName string
-	if os.Getenv("CLEARDB_DATABASE_URL") == "" {
-		DBUser     = os.Getenv("LOCAL_USER")
-		DBPass     = os.Getenv("LOCAL_PASSWORD")
-		DBProtocol = os.Getenv("LOCAL_PROTOCOL")
-		DBName     = os.Getenv("LOCAL_DBNAME")
+	var CONNECT string
+	if os.Getenv("DATABASE_URL") != "" {
+		CONNECT = os.Getenv("DATABASE_URL")
 	} else {
-		DBUser     = os.Getenv("HEROKU_USER")
-		DBPass     = os.Getenv("HEROKU_PASSWORD")
-		DBProtocol = os.Getenv("HEROKU_PROTOCOL")
-		DBName     = os.Getenv("HEROKU_DBNAME")
+		err := godotenv.Load(".env")
+		if err != nil {
+			panic("failed to read .env")
+		}
+
+		DBHost := os.Getenv("DB_HOST")
+		DBUser := os.Getenv("DB_USER")
+		DBName := os.Getenv("DB_NAME")
+		DBPass := os.Getenv("DB_PASSWORD")
+		DBPort := os.Getenv("DB_PORT")
+		CONNECT = fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",DBHost,DBUser, DBName, DBPass, DBPort)
 	}
-	CONNECT := DBUser + ":" + DBPass + "@" + DBProtocol + "/" + DBName + "?parseTime=true"
 	db, err := gorm.Open(Dialect, CONNECT)
+
 	return db, err
 }
-

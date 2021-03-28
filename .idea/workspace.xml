@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a628c411-e7df-475f-9a39-e399eeb5ebca" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/db.go" beforeDir="false" afterPath="$PROJECT_DIR$/db/db.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/github.com/DATA-DOG/go-sqlmock/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/src/github.com/DATA-DOG/go-sqlmock/go.mod" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
