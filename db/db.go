@@ -12,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-const Dialect = "mysql"
+const Dialect = "postgres"
 
 func InitDB() {
 
@@ -34,12 +34,14 @@ func connectDB() (*gorm.DB, error) {
 			panic("failed to read .env")
 		}
 
-		DBUser := os.Getenv("LOCAL_USER")
-		DBPass := os.Getenv("LOCAL_PASSWORD")
-		DBName := os.Getenv("LOCAL_DBNAME")
-		CONNECT = fmt.Sprintf("host=db user=%s dbname=%s password=%s port=5432 sslmode=disable", DBUser, DBName, DBPass)
+		DBHost := os.Getenv("DB_HOST")
+		DBUser := os.Getenv("DB_USER")
+		DBName := os.Getenv("DB_NAME")
+		DBPass := os.Getenv("DB_PASSWORD")
+		DBPort := os.Getenv("DB_PORT")
+		CONNECT = fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",DBHost,DBUser, DBName, DBPass, DBPort)
 	}
-	db, err := gorm.Open("postgres", CONNECT)
+	db, err := gorm.Open(Dialect, CONNECT)
 
 	return db, err
 }

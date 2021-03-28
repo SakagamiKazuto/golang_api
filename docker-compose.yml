@@ -15,12 +15,12 @@ services:
         cap_add:
             - SYS_PTRACE
     db:
-      image: postgres:12
+      image: postgres:${POSTGRES_VERSION}
       container_name: postgresql_host
       environment:
-        POSTGRES_USER: root
-        POSTGRES_PASSWORD: root
-        POSTGRES_DB: golang_psql_dev
+        POSTGRES_USER: ${DB_USER}
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
+        POSTGRES_DB: ${DB_NAME}
         PGDATA: /var/lib/postgresql/data/pgdata
         TZ: 'Asia/Tokyo'
       volumes:
@@ -28,4 +28,4 @@ services:
           - ./db/sql:/docker-entrypoint-initdb.d
           - ./db/logs:/var/log
       ports:
-        - 5432:5432
+        - ${DB_PORT}:${DB_PORT}
