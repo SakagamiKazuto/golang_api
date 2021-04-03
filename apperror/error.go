@@ -60,6 +60,7 @@ const (
 	AuthenticationParamMissing ErrorCode = iota
 	AuthenticationFailure
 	InvalidParameter
+	UniqueValueDuplication
 	InternalError
 
 	// Error codes for internal error
@@ -70,6 +71,7 @@ var codeStatusMap = map[ErrorCode]int{
 	AuthenticationFailure:      http.StatusForbidden,
 	AuthenticationParamMissing: http.StatusBadRequest,
 	InvalidParameter:           http.StatusBadRequest,
+	UniqueValueDuplication:     http.StatusBadRequest,
 	InternalError:              http.StatusInternalServerError,
 }
 
@@ -89,19 +91,20 @@ func (i Internal) Error() string {
 	return "internal"
 }
 
-type External struct {
-	ErrorMessage string
-	StatusCode    int
+type ExternalError struct {
+	ErrorMessage  string
+	OriginalError error
+	StatusCode    ErrorCode
 }
 
-func (e External) Messages() []string {
-	return []string{e.ErrorMessage}
+func (e ExternalError) Messages() []string {
+	return []string{e.Error()}
 }
 
-func (e External) Code() ErrorCode {
-	return ErrorCode(e.StatusCode)
+func (e ExternalError) Code() ErrorCode {
+	return e.StatusCode
 }
 
-func (e External) Error() string {
-	return "external"
+func (e ExternalError) Error() string {
+	return e.OriginalError.Error()
 }
