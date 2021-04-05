@@ -44,7 +44,7 @@ func Signup(c echo.Context) error {
 	if err := c.Bind(user); err != nil {
 		// bindは2度実行されるとエラーが起きる → internalError
 		ac := apperror.ErrorContext{c}
-		return ac.ResponseError(apperror.ExternalError{err.Error(), err, apperror.InvalidParameter})
+		return ac.ResponseError(model.ExternalDBError{err.Error(), err, apperror.InvalidParameter})
 	}
 
 	if err := user.Validate(); err != nil {

@@ -5,6 +5,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/lib/pq"
 )
 
 type User struct {
@@ -24,7 +25,7 @@ func (u User) Validate() error {
 		validation.Field(&u.Mail, validation.Required),
 	)
 	if err != nil {
-		return &apperror.ExternalError{
+		return &ExternalDBError{
 			ErrorMessage:  err.Error(),
 			OriginalError: err,
 			StatusCode:    apperror.InvalidParameter,
@@ -33,14 +34,23 @@ func (u User) Validate() error {
 	return nil
 }
 
-// !! external2つと、internal1つDBでエラーハンドルする
 func CreateUser(user *User, db *gorm.DB) (*User, error) {
-	err := db.Create(user).Error
-	if err != nil {
-		return nil, &apperror.ExternalError{
-			ErrorMessage:  err.Error(),
-			OriginalError: err,
-			StatusCode:    apperror.UniqueValueDuplication,
+	if err := db.Create(&user).Error; err != nil {
+		pqe, ok := err.(*pq.Error)
+		if !ok {
+			return nil, &InternalDBError{}
+		}
+
+		switch pqe.Code {
+		// DB内でUniqueKey制約に引っかかるエラーの場合にはexternalエラーを返す
+		case "23505":
+			return nil, &ExternalDBError{
+				ErrorMessage:  pqe.Error(),
+				OriginalError: pqe,
+				StatusCode:    apperror.UniqueValueDuplication,
+			}
+		default:
+			return nil, &InternalDBError{}
 		}
 	}
 
@@ -52,22 +62,3 @@ func FindUser(u *User, db *gorm.DB) User {
 	db.Where(u).First(&user)
 	return user
 }
-
-// external, internalそれぞれの構造体を返すように
-//type ExternalError struct {
-//	errorMessage string
-//	originalError error
-//	statusCode int
-//}
-//
-//func (de ExternalError) Messages() []string {
-//	return []string{de.errorMessage}
-//}
-//
-//func (de ExternalError) Code() apperror.ErrorCode {
-//	return apperror.ErrorCode(de.statusCode)
-//}
-//
-//func (de ExternalError) Error() string {
-//	return de.originalError.Error()
-//}
