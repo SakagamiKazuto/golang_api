@@ -42,8 +42,14 @@ var Config = middleware.JWTConfig{
 func Signup(c echo.Context) error {
 	user := new(model.User)
 	if err := c.Bind(user); err != nil {
+		// bindは2度実行されるとエラーが起きる → internalError
 		ac := apperror.ErrorContext{c}
-		return ac.ResponseError(apperror.ExternalError{err.Error(),err,http.StatusBadRequest})
+		return ac.ResponseError(apperror.ExternalError{err.Error(), err, apperror.InvalidParameter})
+	}
+
+	if err := user.Validate(); err != nil {
+		ac := apperror.ErrorContext{c}
+		return ac.ResponseError(err)
 	}
 
 	u, err := model.CreateUser(user, db.DB)

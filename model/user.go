@@ -2,9 +2,9 @@ package model
 
 import (
 	"github.com/SakagamiKazuto/golang_api/apperror"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/pkg/errors"
 )
 
 type User struct {
@@ -17,22 +17,30 @@ type User struct {
 	Bosyu    []Bosyu `gorm:"foreignkey:UserID"`
 }
 
-func CreateUser(user *User, db *gorm.DB) (*User, error) {
-	if user.Name == "" || user.Mail == "" || user.Password == "" {
-		err := errors.New("Name, Mail, Password must not be zero-value")
-		return nil, &apperror.ExternalError{
-			ErrorMessage: err.Error(),
+func (u User) Validate() error {
+	err := validation.ValidateStruct(&u,
+		validation.Field(&u.Password, validation.Required),
+		validation.Field(&u.Name, validation.Required),
+		validation.Field(&u.Mail, validation.Required),
+	)
+	if err != nil {
+		return &apperror.ExternalError{
+			ErrorMessage:  err.Error(),
 			OriginalError: err,
-			StatusCode: apperror.AuthenticationParamMissing,
+			StatusCode:    apperror.InvalidParameter,
 		}
 	}
+	return nil
+}
 
+// !! external2つと、internal1つDBでエラーハンドルする
+func CreateUser(user *User, db *gorm.DB) (*User, error) {
 	err := db.Create(user).Error
 	if err != nil {
 		return nil, &apperror.ExternalError{
-			ErrorMessage: err.Error(),
+			ErrorMessage:  err.Error(),
 			OriginalError: err,
-			StatusCode: apperror.UniqueValueDuplication,
+			StatusCode:    apperror.UniqueValueDuplication,
 		}
 	}
 
