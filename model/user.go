@@ -65,9 +65,21 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 	return user, nil
 }
 
-func FindUser(u *User, db *gorm.DB) User {
-	var user User
-	db.Where(u).First(&user)
-	return user
+func FindUser(mail, password string, db *gorm.DB) (*User, error) {
+	user := new(User)
+	result := db.Where("mail = ? AND password = ?", mail, password).First(&user)
+
+	if result.RecordNotFound() {
+		return nil, ExternalDBError{
+			ErrorMessage:  fmt.Sprintln("該当のメールアドレスまたはパスワードがありません"),
+			OriginalError: result.Error,
+			StatusCode:    apperror.UniqueValueDuplication,
+		}
+	}
+
+	if result.Error != nil {
+		return createInDBError(result.Error)
+	}
+	return user, nil
 }
 

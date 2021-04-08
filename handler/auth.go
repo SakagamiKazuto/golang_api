@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/SakagamiKazuto/golang_api/apperror"
 	"net/http"
 	"time"
@@ -43,19 +42,16 @@ func Signup(c echo.Context) error {
 	user := new(model.User)
 	if err := c.Bind(user); err != nil {
 		// bindは2度実行されるとエラーが起きる → internalError
-		ac := apperror.ErrorContext{c}
-		return ac.ResponseError(model.ExternalDBError{err.Error(), err, apperror.InvalidParameter})
+		return apperror.ResponseError(c, err)
 	}
 
 	if err := user.Validate(); err != nil {
-		ac := apperror.ErrorContext{c}
-		return ac.ResponseError(err)
+		return apperror.ResponseError(c, err)
 	}
 
 	u, err := model.CreateUser(user, db.DB)
 	if err != nil {
-		ac := apperror.ErrorContext{c}
-		return ac.ResponseError(err)
+		return apperror.ResponseError(c, err)
 	}
 	return c.JSON(http.StatusCreated, u)
 }
@@ -71,20 +67,17 @@ func Signup(c echo.Context) error {
 func Login(c echo.Context) error {
 	u := new(model.User)
 	if err := c.Bind(u); err != nil {
-		return err
+		return apperror.ResponseError(c, err)
 	}
 
-	user := model.FindUser(&model.User{Mail: u.Mail, Password: u.Password}, db.DB)
-	if user.ID == 0 {
-		return &echo.HTTPError{
-			Code:    http.StatusUnauthorized,
-			Message: fmt.Sprintf("can't find user.\n Mail:%v, Pass:%v", u.Mail, u.Password),
-		}
+	user, err := model.FindUser(u.Mail, u.Password, db.DB)
+	if err != nil {
+		return apperror.ResponseError(c, err)
 	}
 
 	t, err := CreateToken(user.ID, user.Mail)
 	if err != nil {
-		return err
+		return apperror.ResponseError(c, err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{
