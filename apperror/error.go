@@ -3,6 +3,7 @@ package apperror
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -13,38 +14,51 @@ type ErrorContext struct {
 func (ec *ErrorContext) ResponseError(err error) error {
 	exe, ok := errors.Cause(err).(externalError)
 	if ok {
+		log.WithFields(log.Fields{
+			"ErrCode": exe.Code(),
+			"ErrMessage": err.Error(),
+		}).Info("External Error occurred.")
+
 		httpStatus := GetHttpStatus(exe.Code())
-		eres := &ErrorResponse{
+		return ec.JSON(httpStatus, &ErrorResponse{
 			Code:   exe.Code(),
 			Errors: exe.Messages(),
-		}
-		return ec.JSON(httpStatus, eres)
+		})
 	}
+
+	ieres := &ErrorResponse{Errors: []string{err.Error()}}
 
 	ie, ok := errors.Cause(err).(internalError)
-	if ok && ie.Internal() {
-		eres := &ErrorResponse{
-			Code:   InternalError,
-			Errors: []string{"We are very sorry, internal error occurred. We will start investigation immediately."},
-		}
-		// ここにinternal error用のloggerを設定する
-		return ec.JSON(http.StatusInternalServerError, eres)
+	// Unhandledなエラーの処理
+	if !ok {
+		ieres.Code = UnHandledError
+
+		log.WithFields(log.Fields{
+			"ErrCode": UnHandledError,
+			"ErrMessage": err.Error(),
+		}).Warn("Unhandled Error occurred.")
+		return ec.JSON(http.StatusInternalServerError, ieres)
 	}
 
-	// ここにunhandled error用のloggerを設定する
-	return ec.JSON(http.StatusInternalServerError, &ErrorResponse{
-		Code:   InternalError,
-		Errors: []string{"Unexpected Error"},
-	})
+	// handledなエラーの処理
+	if ie.Internal() {
+		ieres.Code = InternalError
+		//!! message, 発生場所を出力。 messageはinternalErrorの実装に依存
+		log.WithFields(log.Fields{
+			"ErrCode": InternalError,
+			"ErrMessage": err.Error(),
+		}).Warn("Internal Error occurred.")
+		return ec.JSON(http.StatusInternalServerError, ieres)
+	}
+
+	return ec.JSON(http.StatusInternalServerError, ieres)
 }
 
 type ErrorResponse struct {
-	//Code             internal.ErrorCode `json:"code"`
 	Code   ErrorCode `json:"code"`
 	Errors []string  `json:"errors"`
 }
 
-// メッセージがリッチ、ログは簡素
 type externalError interface {
 	Code() ErrorCode
 	Messages() []string
@@ -53,6 +67,7 @@ type externalError interface {
 type internalError interface {
 	Internal() bool
 }
+
 
 type ErrorCode int
 
@@ -79,32 +94,3 @@ func GetHttpStatus(code ErrorCode) int {
 	return codeStatusMap[code]
 }
 
-// サンプルstruct
-type Internal struct {
-}
-
-func (i Internal) Internal() bool {
-	return true
-}
-
-func (i Internal) Error() string {
-	return "internal"
-}
-
-type ExternalError struct {
-	ErrorMessage  string
-	OriginalError error
-	StatusCode    ErrorCode
-}
-
-func (e ExternalError) Messages() []string {
-	return []string{e.Error()}
-}
-
-func (e ExternalError) Code() ErrorCode {
-	return e.StatusCode
-}
-
-func (e ExternalError) Error() string {
-	return e.OriginalError.Error()
-}
