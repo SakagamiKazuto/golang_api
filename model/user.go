@@ -42,7 +42,6 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 			return nil, err
 		}
 
-
 		switch pqe.Code {
 		//DB内でUniqueKey制約に引っかかるエラーの場合にはexternalエラーを返す
 		case "23505":
@@ -65,20 +64,20 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 	return user, nil
 }
 
-func FindUser(mail, password string, db *gorm.DB) (*User, error) {
+func FindUser(u *User, db *gorm.DB) (*User, error) {
 	user := new(User)
-	result := db.Where("mail = ? AND password = ?", mail, password).First(&user)
+	result := db.Where(u).First(&user)
 
 	if result.RecordNotFound() {
 		return nil, ExternalDBError{
-			ErrorMessage:  fmt.Sprintln("該当のメールアドレスまたはパスワードがありません"),
+			ErrorMessage:  fmt.Sprintln("該当のユーザーが見つかりません"),
 			OriginalError: result.Error,
 			StatusCode:    apperror.UniqueValueDuplication,
 		}
 	}
 
 	if result.Error != nil {
-		return createInDBError(result.Error)
+		return nil, createInDBError(result.Error)
 	}
 	return user, nil
 }

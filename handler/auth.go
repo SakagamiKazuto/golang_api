@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/SakagamiKazuto/golang_api/apperror"
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"time"
 
@@ -41,7 +42,6 @@ var Config = middleware.JWTConfig{
 func Signup(c echo.Context) error {
 	user := new(model.User)
 	if err := c.Bind(user); err != nil {
-		// bindは2度実行されるとエラーが起きる → internalError
 		return apperror.ResponseError(c, err)
 	}
 
@@ -70,7 +70,7 @@ func Login(c echo.Context) error {
 		return apperror.ResponseError(c, err)
 	}
 
-	user, err := model.FindUser(u.Mail, u.Password, db.DB)
+	user, err := model.FindUser(u, db.DB)
 	if err != nil {
 		return apperror.ResponseError(c, err)
 	}
@@ -105,4 +105,12 @@ func userIDFromToken(c echo.Context) uint {
 	claims := user.Claims.(*jwtCustomClaims)
 	uid := claims.UID
 	return uid
+}
+
+func isLogined(c echo.Context) (bool, error) {
+	uid := userIDFromToken(c)
+	if user, err := model.FindUser(&model.User{Model: gorm.Model{ID: uid}}, db.DB); user.ID == 0 {
+		return false, err
+	}
+	return true, nil
 }

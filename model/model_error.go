@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/SakagamiKazuto/golang_api/apperror"
+	"github.com/lib/pq"
 )
 
 type InternalDBError struct {
@@ -40,3 +41,20 @@ func (e ExternalDBError) Code() apperror.ErrorCode {
 func (e ExternalDBError) Error() string {
 	return e.ErrorMessage + ":" + e.OriginalError.Error()
 }
+
+func createInDBError(err error) error {
+	pqe, ok := err.(*pq.Error)
+
+	if !ok {
+		return err
+	}
+
+	return &InternalDBError{
+		Message:       pqe.Message,
+		Detail:        pqe.Detail,
+		File:          pqe.File,
+		Line:          pqe.Line,
+		OriginalError: pqe,
+	}
+}
+
