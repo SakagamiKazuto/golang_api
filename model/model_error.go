@@ -1,8 +1,15 @@
 package model
 
-import "github.com/SakagamiKazuto/golang_api/apperror"
+import (
+	"fmt"
+	"github.com/SakagamiKazuto/golang_api/apperror"
+	"path/filepath"
+	"runtime"
+)
 
 type InternalDBError struct {
+	ErrorMessage  string
+	OriginalError error
 }
 
 func (i InternalDBError) Internal() bool {
@@ -10,7 +17,7 @@ func (i InternalDBError) Internal() bool {
 }
 
 func (i InternalDBError) Error() string {
-	return "internal"
+	return i.ErrorMessage + i.OriginalError.Error()
 }
 
 type ExternalDBError struct {
@@ -28,5 +35,15 @@ func (e ExternalDBError) Code() apperror.ErrorCode {
 }
 
 func (e ExternalDBError) Error() string {
-	return e.OriginalError.Error()
+	return e.ErrorMessage + ":" + e.OriginalError.Error()
+}
+
+func createInErrMsg(skip int) string {
+	pc, file, _, ok := runtime.Caller(skip)
+	if ok {
+		fname := filepath.Base(file)
+		return fmt.Sprintf(`DB処理中にエラーが発生しました\nfile: %s, func: %s\n`,
+			fname, runtime.FuncForPC(pc).Name())
+	}
+	return fmt.Sprintf(`DB処理中にエラーが発生しました\n`)
 }

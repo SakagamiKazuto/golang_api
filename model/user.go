@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/SakagamiKazuto/golang_api/apperror"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/jinzhu/gorm"
@@ -38,19 +39,23 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 	if err := db.Create(&user).Error; err != nil {
 		pqe, ok := err.(*pq.Error)
 		if !ok {
-			return nil, &InternalDBError{}
+			return nil, err
 		}
+
 
 		switch pqe.Code {
 		// DB内でUniqueKey制約に引っかかるエラーの場合にはexternalエラーを返す
 		case "23505":
 			return nil, &ExternalDBError{
-				ErrorMessage:  pqe.Error(),
+				ErrorMessage:  fmt.Sprintf("メールアドレス%sのデータ挿入に失敗しました", user.Mail),
 				OriginalError: pqe,
 				StatusCode:    apperror.UniqueValueDuplication,
 			}
 		default:
-			return nil, &InternalDBError{}
+			return nil, &InternalDBError{
+				ErrorMessage:  createInErrMsg(1),
+				OriginalError: pqe,
+			}
 		}
 	}
 
@@ -62,3 +67,4 @@ func FindUser(u *User, db *gorm.DB) User {
 	db.Where(u).First(&user)
 	return user
 }
+
