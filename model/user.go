@@ -44,7 +44,7 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 
 
 		switch pqe.Code {
-		// DB内でUniqueKey制約に引っかかるエラーの場合にはexternalエラーを返す
+		//DB内でUniqueKey制約に引っかかるエラーの場合にはexternalエラーを返す
 		case "23505":
 			return nil, &ExternalDBError{
 				ErrorMessage:  fmt.Sprintf("メールアドレス%sのデータ挿入に失敗しました", user.Mail),
@@ -53,7 +53,10 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 			}
 		default:
 			return nil, &InternalDBError{
-				ErrorMessage:  createInErrMsg(1),
+				Message:  pqe.Message,
+				Detail: pqe.Detail,
+				File: pqe.File,
+				Line: pqe.Line,
 				OriginalError: pqe,
 			}
 		}
