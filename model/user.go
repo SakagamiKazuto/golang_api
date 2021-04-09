@@ -72,7 +72,7 @@ func FindUser(u *User, db *gorm.DB) (*User, error) {
 		return nil, ExternalDBError{
 			ErrorMessage:  fmt.Sprintln("該当のユーザーが見つかりません"),
 			OriginalError: result.Error,
-			StatusCode:    apperror.UniqueValueDuplication,
+			StatusCode:    apperror.ValueNotFound,
 		}
 	}
 

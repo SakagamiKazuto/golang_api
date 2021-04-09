@@ -7,53 +7,6 @@ import (
 	"net/http"
 )
 
-type ErrorContext struct {
-	echo.Context
-}
-
-func (ec *ErrorContext) ResponseError(err error) error {
-	exe, ok := errors.Cause(err).(externalError)
-	if ok {
-		log.WithFields(log.Fields{
-			"ErrCode": exe.Code(),
-			"ErrMessage": err.Error(),
-		}).Info("External Error occurred.")
-
-		httpStatus := GetHttpStatus(exe.Code())
-		return ec.JSON(httpStatus, &ErrorResponse{
-			Code:   exe.Code(),
-			Errors: exe.Messages(),
-		})
-	}
-
-	ieres := &ErrorResponse{Errors: []string{err.Error()}}
-
-	ie, ok := errors.Cause(err).(internalError)
-	// Unhandledなエラーの処理
-	if !ok {
-		ieres.Code = UnHandledError
-
-		log.WithFields(log.Fields{
-			"ErrCode": UnHandledError,
-			"ErrMessage": err.Error(),
-		}).Warn("Unhandled Error occurred.")
-		return ec.JSON(http.StatusInternalServerError, ieres)
-	}
-
-	// handledなエラーの処理
-	if ie.Internal() {
-		ieres.Code = InternalError
-		//!! message, 発生場所を出力。 messageはinternalErrorの実装に依存
-		log.WithFields(log.Fields{
-			"ErrCode": InternalError,
-			"ErrMessage": err.Error(),
-		}).Warn("Internal Error occurred.")
-		return ec.JSON(http.StatusInternalServerError, ieres)
-	}
-
-	return ec.JSON(http.StatusInternalServerError, ieres)
-}
-
 type ErrorResponse struct {
 	Code   ErrorCode `json:"code"`
 	Errors []string  `json:"errors"`
@@ -68,7 +21,6 @@ type internalError interface {
 	Internal() bool
 }
 
-
 type ErrorCode int
 
 const (
@@ -76,9 +28,10 @@ const (
 	AuthenticationFailure
 	InvalidParameter
 	UniqueValueDuplication
+	ValueNotFound
 	InternalError
 
-	// Error codes for internal error
+	// Error codes for unhandled error
 	UnHandledError ErrorCode = 999
 )
 
@@ -87,10 +40,47 @@ var codeStatusMap = map[ErrorCode]int{
 	AuthenticationParamMissing: http.StatusBadRequest,
 	InvalidParameter:           http.StatusBadRequest,
 	UniqueValueDuplication:     http.StatusBadRequest,
+	ValueNotFound:              http.StatusNotFound,
 	InternalError:              http.StatusInternalServerError,
+}
+
+func ResponseError(ec echo.Context, err error) error {
+	exe, ok := errors.Cause(err).(externalError)
+	if ok {
+		log.WithFields(log.Fields{
+			"ErrCode":    exe.Code(),
+			"ErrMessage": err.Error(),
+		}).Info("External Error occurred.")
+
+		httpStatus := GetHttpStatus(exe.Code())
+		return ec.JSON(httpStatus, &ErrorResponse{
+			Code:   exe.Code(),
+			Errors: exe.Messages(),
+		})
+	}
+
+	ieres := &ErrorResponse{Errors: []string{"サーバー内部でエラーが発生しました"}}
+
+	ie, ok := errors.Cause(err).(internalError)
+	// handledなエラーの処理
+	if ok && ie.Internal() {
+		ieres.Code = InternalError
+		log.WithFields(log.Fields{
+			"ErrCode":    InternalError,
+			"ErrMessage": err.Error(),
+		}).Warn("Internal Error occurred.")
+		return ec.JSON(http.StatusInternalServerError, ieres)
+	}
+
+	// Unhandledなエラーの処理
+	ieres.Code = UnHandledError
+	log.WithFields(log.Fields{
+		"ErrCode":    UnHandledError,
+		"ErrMessage": err.Error(),
+	}).Warn("Unhandled Error occurred.")
+	return ec.JSON(http.StatusInternalServerError, ieres)
 }
 
 func GetHttpStatus(code ErrorCode) int {
 	return codeStatusMap[code]
 }
-

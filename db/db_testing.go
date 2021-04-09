@@ -17,15 +17,15 @@ import (
 func ConnectTestDB() {
 	DBHost := os.Getenv("DB_HOST")
 	DBUser := os.Getenv("DB_USER")
-	DBName := os.Getenv("DB_NAME")
+	DBName := os.Getenv("TEST_DB_NAME")
 	DBPass := os.Getenv("DB_PASSWORD")
 	DBPort := os.Getenv("DB_PORT")
 	CONNECT := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",DBHost,DBUser, DBName, DBPass, DBPort)
-	DB, err := gorm.Open(Dialect, CONNECT)
+	db, err := gorm.Open(Dialect, CONNECT)
 	if err != nil {
 		panic("failed to connect database")
 	}
-	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
+	db.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
 }
 
 func InsertTestData() {

@@ -1,11 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/SakagamiKazuto/golang_api/apperror"
-	"net/http"
-	"strconv"
-
 	"github.com/labstack/echo/v4"
+	"net/http"
 
 	"github.com/SakagamiKazuto/golang_api/db"
 	"github.com/SakagamiKazuto/golang_api/model"
@@ -26,7 +25,7 @@ func CreateBosyu(c echo.Context) error {
 
 	bosyu := new(model.Bosyu)
 	if err := c.Bind(bosyu); err != nil {
-		return apperror.ResponseError(c, err)
+		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
 	}
 
 	if err := bosyu.Validate(); err != nil {
@@ -55,20 +54,14 @@ func GetBosyu(c echo.Context) error {
 		return createLoginFailureErr(c, err)
 	}
 
-	user_id, err := strconv.ParseUint(c.QueryParam("user_id"), 10, 32)
-	if err != nil {
-		return &echo.HTTPError{
-			Code:    http.StatusBadRequest,
-			Message: "invalid user_id parameter",
-		}
+	bosyu := new(model.Bosyu)
+	if err := c.Bind(bosyu); err != nil {
+		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
 	}
 
-	bosyus := model.FindBosyu(uint(user_id), db.DB)
-	if len(bosyus) == 0 {
-		return &echo.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: "can't find bosyus.",
-		}
+	bosyus, err := model.FindBosyu(bosyu.UserID, db.DB)
+	if err != nil {
+		return apperror.ResponseError(c, err)
 	}
 	return c.JSON(http.StatusOK, bosyus)
 }
@@ -87,26 +80,17 @@ func UpdateBosyu(c echo.Context) error {
 	}
 
 	bosyu := new(model.Bosyu)
-	var err error
-	if err = c.Bind(bosyu); err != nil {
-		return err
+	if err := c.Bind(bosyu); err != nil {
+		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
 	}
 
-	if bosyu.Title == "" || bosyu.About == "" {
-		return &echo.HTTPError{
-			Code:    http.StatusBadRequest,
-			Message: "invalid to Title or About fields",
-		}
-	}
+	// validate必要
 
-	bosyu, err = model.UpdateBosyu(bosyu, db.DB)
+	b, err := model.UpdateBosyu(bosyu, db.DB)
 	if err != nil {
-		return &echo.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: err,
-		}
+		return apperror.ResponseError(c, err)
 	}
-	return c.JSON(http.StatusOK, bosyu)
+	return c.JSON(http.StatusOK, b)
 }
 
 // DeleteBosyu is deleting bosyu.
@@ -123,22 +107,14 @@ func DeleteBosyu(c echo.Context) error {
 		return createLoginFailureErr(c, err)
 	}
 
-	bosyu_id, err := strconv.ParseUint(c.QueryParam("bosyu_id"), 10, 32)
-
-	if err != nil {
-		return &echo.HTTPError{
-			Code:    http.StatusBadRequest,
-			Message: "invalid bosyu id parameter",
-		}
+	bosyu := new(model.Bosyu)
+	if err := c.Bind(bosyu); err != nil {
+		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
 	}
 
-	err = model.DeleteBosyu(uint(bosyu_id), db.DB)
+	err := model.DeleteBosyu(bosyu.ID, db.DB)
 	if err != nil {
-		return &echo.HTTPError{
-			Code:    http.StatusNotFound,
-			Message: err,
-		}
+		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
 	}
-
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, []string{fmt.Sprintf("募集(ID:%d)は削除されました", bosyu.ID)})
 }
