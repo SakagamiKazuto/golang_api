@@ -4,6 +4,7 @@
     <option name="urls">
       <list>
         <option value="file://$USER_HOME$/go/pkg" />
+        <option value="file://$USER_HOME$/go/src" />
       </list>
     </option>
   </component>

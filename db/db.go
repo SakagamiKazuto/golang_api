@@ -7,6 +7,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -15,11 +16,10 @@ var DB *gorm.DB
 const Dialect = "postgres"
 
 func InitDB() {
-
-	DB, err := connectDB()
+	var err error
+	DB, err = connectDB()
 	if err != nil {
-		//panic("failed to connect database")
-		panic(err.Error())
+		log.Fatal(err.Error())
 	}
 	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
 }
@@ -31,7 +31,7 @@ func connectDB() (*gorm.DB, error) {
 	} else {
 		err := godotenv.Load(".env")
 		if err != nil {
-			panic("failed to read .env")
+			return nil, err
 		}
 
 		DBHost := os.Getenv("DB_HOST")
@@ -39,7 +39,7 @@ func connectDB() (*gorm.DB, error) {
 		DBName := os.Getenv("DB_NAME")
 		DBPass := os.Getenv("DB_PASSWORD")
 		DBPort := os.Getenv("DB_PORT")
-		CONNECT = fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",DBHost,DBUser, DBName, DBPass, DBPort)
+		CONNECT = fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable", DBHost, DBUser, DBName, DBPass, DBPort)
 	}
 	db, err := gorm.Open(Dialect, CONNECT)
 

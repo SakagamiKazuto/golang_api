@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"github.com/SakagamiKazuto/golang_api/db"
+	_ "github.com/SakagamiKazuto/golang_api/logger"
 )
 
 
