@@ -15,9 +15,9 @@ import (
 3. テストの実行
  */
 func TestMain(m *testing.M) {
-	db.ConnectTestDB()
-	db.DeleteTestData()
-	db.InsertTestData()
+	connectDB := db.ConnectTestDB()
+	db.DeleteTestData(connectDB)
+	db.InsertTestData(connectDB)
 	code := m.Run()
 
 	os.Exit(code)
