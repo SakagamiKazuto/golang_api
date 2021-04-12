@@ -70,7 +70,7 @@ func Login(c echo.Context) error {
 		return apperror.ResponseError(c, err)
 	}
 
-	user, err := model.FindUser(u, db.DB)
+	user, err := model.FindUser(&model.User{Password: u.Password, Mail: u.Mail}, db.DB)
 	if err != nil {
 		return apperror.ResponseError(c, err)
 	}

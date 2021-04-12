@@ -66,6 +66,7 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 
 func FindUser(u *User, db *gorm.DB) (*User, error) {
 	user := new(User)
+	// passwordとmailで探してくるように修正
 	result := db.Where(u).First(&user)
 
 	if result.RecordNotFound() {

@@ -3,10 +3,8 @@ package test
 import (
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"reflect"
 	"regexp"
-	"strings"
 	"testing"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
@@ -21,7 +19,6 @@ import (
 	"github.com/SakagamiKazuto/golang_api/handler"
 	"github.com/SakagamiKazuto/golang_api/model"
 )
-
 
 /*
 CreateBosyuTests
@@ -60,7 +57,7 @@ func TestCreateBosyuModel(t *testing.T) {
 
 	mock.ExpectCommit()
 
-	b = model.CreateBosyu(b, db)
+	b, err = model.CreateBosyu(b, db)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("TestCreateBosyuModel: %v", err)
@@ -72,78 +69,29 @@ func TestCreateBosyuHandlerNormal(t *testing.T) {
 
 	title := "sample_title"
 	about := "sample_about"
-	pref:= "sample_pref"
+	pref := "sample_pref"
 	city := "sample_city"
 	level := "sample_level"
 	user_id := 1
-	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v}", title, about, pref, city, level, user_id)
-	token, err := createTokenFromSomeUser()
-		if err != nil {
-			t.Errorf("got error like: %+v", err)
-		}
-
-	req, rec := createBosyuPostRequest(bosyu_json, token)
-
-	contents := e.NewContext(req, rec)
-	exec := middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
-
-	assert.NoError(t, exec)
-	assert.Equal(t, http.StatusCreated, rec.Code)
-}
-
-func TestCreateBosyuHandlerError(t *testing.T) {
-	e := echo.New()
+	bosyuJson := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v}", title, about, pref, city, level, user_id)
 	token, err := createTokenFromSomeUser()
 	if err != nil {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	title := ""
-	about := "sample_about"
-	pref:= "sample_pref"
-	city := "sample_city"
-	level := "sample_level"
-	user_id := 1
-	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v}", title, about, pref, city, level, user_id)
-	req, rec := createBosyuPostRequest(bosyu_json, token)
+	mockReq := MockReq{bosyuJson, token, "/api/bosyu/create",  "POST"}
+	req, rec := mockReq.createReq()
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
-	res := exec
 
-	if assert.Error(t, res) {
-		//	res.Codeだと値が取り出せないので
-		//	handlerがreturnしてきた値からstatusCodeを取り出す
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusBadRequest, code)
-	}
-
-	title = "sample"
-	about = ""
-	bosyu_json = fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v}", title, about, pref, city, level, user_id)
-	req, rec = createBosyuPostRequest(bosyu_json, token)
-
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
-	res = exec
-
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusBadRequest, code)
-	}
-
-	//3. JWTの認証が未通過
-	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createBosyuPostRequest(bosyu_json, token)
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.CreateBosyu)(contents)
-	res = exec
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusNotFound, code)
+	if assert.NoError(t, exec) {
+		assert.Equal(t, http.StatusCreated, rec.Code)
 	}
 }
 
+func TestCreateBosyuHandlerError(t *testing.T) {
+}
 
 /*
 GetBosyuTests
@@ -158,12 +106,6 @@ Error
 3. JWT認証が通らない
 */
 func TestGetBosyuModel(t *testing.T) {
-	userId := uint(1)
-	bosyus := model.FindBosyu(userId, db.DB)
-	for _, bosyu := range bosyus {
-		assert.Empty(t, nil, bosyu.DeletedAt)
-		assert.Equal(t, userId, bosyu.UserID)
-	}
 }
 
 func TestGetBosyuHandlerNormal(t *testing.T) {
@@ -174,7 +116,8 @@ func TestGetBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	req, rec := createBosyuGetRequest("1", token)
+	mockReq := MockReq{`{"user_id": 1}`, token, "/api/bosyu/get", "GET"}
+	req, rec := mockReq.createReq()
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
 
@@ -184,46 +127,7 @@ func TestGetBosyuHandlerNormal(t *testing.T) {
 }
 
 func TestGetBosyuHandlerError(t *testing.T) {
-	e := echo.New()
-
-	token, err := createTokenFromSomeUser()
-	if err != nil {
-		t.Errorf("got error like: %+v", err)
-	}
-
-	//1. データがDBに存在しない
-	req, rec := createBosyuGetRequest("99999", token)
-	contents := e.NewContext(req, rec)
-	exec := middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
-	res := exec
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusNotFound, code)
-	}
-
-
-	//2. user_idの値がBlank
-	req, rec = createBosyuGetRequest("", token)
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
-	res = exec
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusBadRequest, code)
-	}
-
-	//3. JWTの認証が未通過
-	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createBosyuGetRequest("1", token)
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.GetBosyu)(contents)
-	res = exec
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusNotFound, code)
-	}
 }
-
 
 /*
 UpdateBosyuTests
@@ -286,13 +190,14 @@ func TestUpdateBosyuHandlerNormal(t *testing.T) {
 
 	title := "sample3_title_updated"
 	about := "sample3_about_updated"
-	pref:= "sample3_pref_updated"
+	pref := "sample3_pref_updated"
 	city := "sample3_city_updated"
 	level := "sample3_level_updated"
 	user_id := 1
 	id := 3
-	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
-	req, rec := createBosyuUpdateRequest(bosyu_json, token)
+	bosyuJson := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
+	mockReq := MockReq{bosyuJson, token, "/api/bosyu/update",  "PUT"}
+	req, rec := mockReq.createReq()
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
@@ -303,59 +208,7 @@ func TestUpdateBosyuHandlerNormal(t *testing.T) {
 }
 
 func TestUpdateBosyuHandlerError(t *testing.T) {
-	e := echo.New()
-	token, err := createTokenFromSomeUser()
-	if err != nil {
-		t.Errorf("got error like: %+v", err)
-	}
-	// 1.DBにBosyuのIDが存在しない
-	id := 0
-	title := "sample1_title_updated"
-	about := "sample1_about_updated"
-	pref:= "sample1_pref_updated"
-	city := "sample1_city_updated"
-	level := "sample1_level_updated"
-	user_id := 1
-	bosyu_json := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
-	req, rec := createBosyuUpdateRequest(bosyu_json, token)
-
-	contents := e.NewContext(req, rec)
-	exec := middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
-	res := exec
-
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusNotFound, code)
-	}
-
-	// 2.TitleやAboutが空欄
-	title = ""
-	about = ""
-	id = 1
-	bosyu_json = fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
-	req, rec = createBosyuUpdateRequest(bosyu_json, token)
-
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
-	res = exec
-
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusBadRequest, code)
-	}
-
-	//3. JWTの認証が未通過
-	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createBosyuUpdateRequest(bosyu_json, token)
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.UpdateBosyu)(contents)
-	res = exec
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusNotFound, code)
-	}
 }
-
 
 /*
 DeleteBosyuTests
@@ -398,56 +251,18 @@ func TestDeleteBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	req, rec := createBosyuDeleteRequest("3", token)
+	mockReq := MockReq{`{"id": 1}`, token, "/api/bosyu/delete",  "DELETE"}
+	req, rec := mockReq.createReq()
 
 	contents := e.NewContext(req, rec)
 	exec := middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
 
 	if assert.NoError(t, exec) {
-		assert.Equal(t, http.StatusNoContent, rec.Code)
+		assert.Equal(t, http.StatusOK, rec.Code)
 	}
 }
 
 func TestDeleteBosyuHandlerError(t *testing.T) {
-	e := echo.New()
-	token, err := createTokenFromSomeUser()
-	if err != nil {
-		t.Errorf("got error like: %+v", err)
-	}
-	// 1.DBにBosyuのIDが存在しない
-	req, rec := createBosyuDeleteRequest("0", token)
-
-	contents := e.NewContext(req, rec)
-	exec := middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
-	res := exec
-
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusNotFound, code)
-	}
-
-	//2. bosyu_idが正しくない値
-	req, rec = createBosyuDeleteRequest("invalid_param", token)
-
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
-	res = exec
-
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusBadRequest, code)
-	}
-
-	//3. JWTの認証が未通過
-	token, err = handler.CreateToken(uint(9999),"DONTEXIST@gmail.com")
-	req, rec = createBosyuDeleteRequest("1", token)
-	contents = e.NewContext(req, rec)
-	exec = middleware.JWTWithConfig(handler.Config)(handler.DeleteBosyu)(contents)
-	res = exec
-	if assert.Error(t, res) {
-		code := getErrorStatusCode(res)
-		assert.Equal(t, http.StatusNotFound, code)
-	}
 }
 
 // CommonMethod's
@@ -464,44 +279,10 @@ func getDBMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	return gdb, mock, nil
 }
 
-func createTokenFromSomeUser()(string, error) {
-	user := model.FindUser(&model.User{}, db.DB)
+func createTokenFromSomeUser() (string, error) {
+	user, err := model.FindUser(&model.User{}, db.DB)
 	token, err := handler.CreateToken(user.ID, user.Mail)
 	return token, err
-}
-
-func createBosyuPostRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
-	bodyReader := strings.NewReader(bosyu_json)
-	req := httptest.NewRequest("POST", "/api/bosyu/create", bodyReader)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
-	rec := httptest.NewRecorder()
-	return req, rec
-}
-
-func createBosyuUpdateRequest(bosyu_json string, token string) (*http.Request, *httptest.ResponseRecorder) {
-	bodyReader := strings.NewReader(bosyu_json)
-	req := httptest.NewRequest("PUT", "/api/bosyu/update", bodyReader)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
-	rec := httptest.NewRecorder()
-	return req, rec
-}
-
-func createBosyuGetRequest(uID string, token string) (*http.Request, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest("GET", fmt.Sprintf("/api/bosyu/get?user_id=%v", uID), nil)
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
-	rec := httptest.NewRecorder()
-	return req, rec
-}
-
-func createBosyuDeleteRequest(bID string, token string) (*http.Request, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest("DELETE", fmt.Sprintf("/api/bosyu/delete?bosyu_id=%v", bID), nil)
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
-	rec := httptest.NewRecorder()
-	return req, rec
 }
 
 func getErrorStatusCode(res interface{}) int {
