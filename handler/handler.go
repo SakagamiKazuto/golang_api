@@ -60,7 +60,7 @@ func GetBosyu(c echo.Context) error {
 		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
 	}
 
-	bosyus, err := model.FindBosyu(bosyu.UserID, db.DB)
+	bosyus, err := model.FindBosyuByUid(bosyu.UserID, db.DB)
 	if err != nil {
 		return apperror.ResponseError(c, err)
 	}

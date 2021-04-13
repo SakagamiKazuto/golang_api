@@ -19,9 +19,7 @@ func (i InternalDBError) Internal() bool {
 }
 
 func (i InternalDBError) Error() string {
-	return fmt.Sprintf(`Message: %s
-Detail: %s
-Place: %s %s`, i.Message, i.Detail, i.File, i.Line)
+	return fmt.Sprintf("Message: %s\nDetail: %s\nPlace: %s %s", i.Message, i.Detail, i.File, i.Line)
 }
 
 type ExternalDBError struct {

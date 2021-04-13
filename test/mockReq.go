@@ -16,9 +16,9 @@ type MockReq struct {
 
 func (mr MockReq) createReq() (*http.Request, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest(mr.method, mr.target, strings.NewReader(mr.jsonStr))
+	req.Header.Add("Content-Type", "application/json")
 
 	if mr.method == "POST" || mr.method == "PUT" {
-		req.Header.Add("Content-Type", "application/json")
 		req.Header.Add("Accept", "application/json")
 	}
 

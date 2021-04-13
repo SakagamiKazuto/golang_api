@@ -4,17 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"regexp"
 	"testing"
 
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/SakagamiKazuto/golang_api/common"
 	"github.com/SakagamiKazuto/golang_api/db"
 	"github.com/SakagamiKazuto/golang_api/handler"
 	"github.com/SakagamiKazuto/golang_api/model"
@@ -22,23 +19,17 @@ import (
 
 /*
 CreateBosyuTests
-Model:
-1. 正しいパターンではSQLのクエリが正しく発行されているかのチェック
+CreateBosyu:
+Normal
+1. 募集データが挿入できる
+Error
+1. internalエラーをリターンする
 Handler:
 Normal
 1. status201
 
-Error
-1. TitleとAboutの空欄
-2. JWTの認証が通らない
 */
-func TestCreateBosyuModel(t *testing.T) {
-	db, mock, err := getDBMock()
-	if err != nil {
-		t.Errorf("Failed to initialize mock DB: %v", err)
-		return
-	}
-
+func TestCreateBosyuNormal(t *testing.T) {
 	b := new(model.Bosyu)
 
 	b.Title = "sample_title"
@@ -48,20 +39,17 @@ func TestCreateBosyuModel(t *testing.T) {
 	b.Level = "player"
 	b.UserID = 123123
 
-	// 発行されているクエリおよび影響を受けるカラムの数が正しいかをチェックする
-	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(
-		"INSERT INTO `bosyus` (`created_at`,`updated_at`,`deleted_at`,`title`,`about`,`prefecture`,`city`,`level`,`user_id`) VALUES (?,?,?,?,?,?,?,?,?)")).
-		WithArgs(common.AnyTime{}, common.AnyTime{}, nil, b.Title, b.About, b.Prefecture, b.City, b.Level, b.UserID).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	_, err := model.CreateBosyu(b, db.DB)
+	assert.NoError(t, err)
+}
 
-	mock.ExpectCommit()
+func TestCreateBosyuError(t *testing.T) {
+	b := new(model.Bosyu)
 
-	b, err = model.CreateBosyu(b, db)
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("TestCreateBosyuModel: %v", err)
-	}
+	// すでにID=1のデータが存在するため一意制約に違反する
+	b.ID = 1
+	_, err := model.CreateBosyu(b, db.DB)
+	assert.Error(t, err)
 }
 
 func TestCreateBosyuHandlerNormal(t *testing.T) {
@@ -79,7 +67,7 @@ func TestCreateBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	mockReq := MockReq{bosyuJson, token, "/api/bosyu/create",  "POST"}
+	mockReq := MockReq{bosyuJson, token, "/api/bosyu/create", "POST"}
 	req, rec := mockReq.createReq()
 
 	contents := e.NewContext(req, rec)
@@ -95,17 +83,35 @@ func TestCreateBosyuHandlerError(t *testing.T) {
 
 /*
 GetBosyuTests
-Model:
-1. テストデータにdeleted_atがnullとそうでないものを用意し、deleted_atがnullのものだけ返すことを確認
+FindBosyuByUserID:
+Normal
+1. ユーザーIDでデータが取れる
+
+Error
+1. 該当ユーザーIDが存在しない
+2. 内部エラー
+
 Handler:
 Normal
 1. status200
 Error
-1. データがDBに存在しない
-2. user_idの値がBlank
-3. JWT認証が通らない
+1. ログインに失敗
+2. bindに失敗
 */
-func TestGetBosyuModel(t *testing.T) {
+func TestFindBosyuByUidNormal(t *testing.T) {
+	b := new(model.Bosyu)
+
+	b.UserID = 1
+	_, err := model.FindBosyuByUid(b.UserID, db.DB)
+	assert.NoError(t, err)
+}
+
+func TestFindBosyuByUidError(t *testing.T) {
+	b := new(model.Bosyu)
+
+	b.UserID = 123123
+	_, err := model.FindBosyuByUid(b.UserID, db.DB)
+	assert.Error(t, err, fmt.Sprintf("該当のユーザーID%dの募集は見つかりません:record not found", b.UserID))
 }
 
 func TestGetBosyuHandlerNormal(t *testing.T) {
@@ -131,7 +137,7 @@ func TestGetBosyuHandlerError(t *testing.T) {
 
 /*
 UpdateBosyuTests
-Model:
+UpdateBosyu:
 Normal
 1. BosyuのIDがdatabaseに存在する
 
@@ -147,7 +153,7 @@ Error
 2. TitleとAboutの空欄である
 3. JWTの認証が通らない
 */
-func TestUpdateBosyuModelNormal(t *testing.T) {
+func TestUpdateBosyuNormal(t *testing.T) {
 	b := new(model.Bosyu)
 
 	b.Title = "sample1_title_updated"
@@ -164,7 +170,7 @@ func TestUpdateBosyuModelNormal(t *testing.T) {
 	}
 }
 
-func TestUpdateBosyuModelError(t *testing.T) {
+func TestUpdateBosyuError(t *testing.T) {
 	b := new(model.Bosyu)
 
 	b.Title = "sample1_title_updated"
@@ -177,7 +183,6 @@ func TestUpdateBosyuModelError(t *testing.T) {
 
 	_, err := model.UpdateBosyu(b, db.DB)
 	assert.Error(t, err)
-
 }
 
 func TestUpdateBosyuHandlerNormal(t *testing.T) {
@@ -196,7 +201,7 @@ func TestUpdateBosyuHandlerNormal(t *testing.T) {
 	user_id := 1
 	id := 3
 	bosyuJson := fmt.Sprintf("{\"title\": \"%v\", \"about\": \"%v\", \"pref\": \"%v\", \"city\": \"%v\", \"level\": \"%v\", \"user_id\": %v, \"id\": %v}", title, about, pref, city, level, user_id, id)
-	mockReq := MockReq{bosyuJson, token, "/api/bosyu/update",  "PUT"}
+	mockReq := MockReq{bosyuJson, token, "/api/bosyu/update", "PUT"}
 	req, rec := mockReq.createReq()
 
 	contents := e.NewContext(req, rec)
@@ -228,17 +233,16 @@ Error
 2. bosyu_idが正しくない値
 3. JWTの認証が通らない
 */
-func TestDeleteBosyuModelNormal(t *testing.T) {
+func TestDeleteBosyuNormal(t *testing.T) {
 	b := new(model.Bosyu)
 	b.ID = 1
 	err := model.DeleteBosyu(b.ID, db.DB)
 	assert.NoError(t, err)
 }
 
-func TestDeleteBosyuModelError(t *testing.T) {
+func TestDeleteBosyuError(t *testing.T) {
 	b := new(model.Bosyu)
 	b.ID = 0
-
 	err := model.DeleteBosyu(b.ID, db.DB)
 	assert.Error(t, err)
 }
@@ -251,7 +255,7 @@ func TestDeleteBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	mockReq := MockReq{`{"id": 1}`, token, "/api/bosyu/delete",  "DELETE"}
+	mockReq := MockReq{`{"id": 1}`, token, "/api/bosyu/delete", "DELETE"}
 	req, rec := mockReq.createReq()
 
 	contents := e.NewContext(req, rec)
@@ -265,22 +269,11 @@ func TestDeleteBosyuHandlerNormal(t *testing.T) {
 func TestDeleteBosyuHandlerError(t *testing.T) {
 }
 
-// CommonMethod's
-func getDBMock() (*gorm.DB, sqlmock.Sqlmock, error) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gdb, err := gorm.Open("mysql", db)
-	if err != nil {
-		return nil, nil, err
-	}
-	return gdb, mock, nil
-}
-
 func createTokenFromSomeUser() (string, error) {
-	user, err := model.FindUser(&model.User{}, db.DB)
+	user, err := model.FindUserByUid(&model.User{Model: gorm.Model{ID: 1}}, db.DB)
+	if err != nil {
+		panic(fmt.Sprintf(`テスト中にエラーが発生:%s`, err.Error()))
+	}
 	token, err := handler.CreateToken(user.ID, user.Mail)
 	return token, err
 }

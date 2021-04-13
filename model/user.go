@@ -52,10 +52,10 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 			}
 		default:
 			return nil, &InternalDBError{
-				Message:  pqe.Message,
-				Detail: pqe.Detail,
-				File: pqe.File,
-				Line: pqe.Line,
+				Message:       pqe.Message,
+				Detail:        pqe.Detail,
+				File:          pqe.File,
+				Line:          pqe.Line,
 				OriginalError: pqe,
 			}
 		}
@@ -64,10 +64,9 @@ func CreateUser(user *User, db *gorm.DB) (*User, error) {
 	return user, nil
 }
 
-func FindUser(u *User, db *gorm.DB) (*User, error) {
+func FindUserByMailPass(u *User, db *gorm.DB) (*User, error) {
 	user := new(User)
-	// passwordとmailで探してくるように修正
-	result := db.Where(u).First(&user)
+	result := db.Where("mail = ? AND password = ?", u.Mail, u.Password).First(&user)
 
 	if result.RecordNotFound() {
 		return nil, ExternalDBError{
@@ -83,3 +82,20 @@ func FindUser(u *User, db *gorm.DB) (*User, error) {
 	return user, nil
 }
 
+func FindUserByUid(u *User, db *gorm.DB) (*User, error) {
+	user := new(User)
+	result := db.Where("id = ?", u.ID).First(&user)
+
+	if result.RecordNotFound() {
+		return nil, ExternalDBError{
+			ErrorMessage:  fmt.Sprintln("該当のユーザーが見つかりません"),
+			OriginalError: result.Error,
+			StatusCode:    apperror.ValueNotFound,
+		}
+	}
+
+	if result.Error != nil {
+		return nil, createInDBError(result.Error)
+	}
+	return user, nil
+}

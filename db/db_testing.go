@@ -74,6 +74,5 @@ func getTimeNowPointer() *time.Time {
 }
 
 func throughError(err error) string {
-	panic(fmt.Sprintf(`エラーが発生しました
-%s`,err.Error()))
+	panic(fmt.Sprintf("エラーが発生しました\n%s",err.Error()))
 }
