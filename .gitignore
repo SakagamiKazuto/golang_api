@@ -17,7 +17,6 @@ pkg/
 
 # Append Local UnNeeded files
 db/data/
-.gitignore
 .env
 
 # idea files

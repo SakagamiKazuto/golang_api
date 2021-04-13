@@ -2,6 +2,10 @@ package test
 
 import (
 	"fmt"
+	"github.com/SakagamiKazuto/golang_api/db"
+	"github.com/SakagamiKazuto/golang_api/handler"
+	"github.com/SakagamiKazuto/golang_api/model"
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -29,3 +33,11 @@ func (mr MockReq) createReq() (*http.Request, *httptest.ResponseRecorder) {
 	return req, rec
 }
 
+func createTokenFromSomeUser() (string, error) {
+	user, err := model.FindUserByUid(&model.User{Model: gorm.Model{ID: 1}}, db.DB)
+	if err != nil {
+		panic(fmt.Sprintf(`テスト中にエラーが発生:%s`, err.Error()))
+	}
+	token, err := handler.CreateToken(user.ID, user.Mail)
+	return token, err
+}
