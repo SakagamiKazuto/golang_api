@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+tmp/
 
 # Test binary, built with `go test -c`
 *.test
@@ -17,7 +18,6 @@ pkg/
 
 # Append Local UnNeeded files
 db/data/
-.env
 
 # idea files
 .idea/workspace.xml
