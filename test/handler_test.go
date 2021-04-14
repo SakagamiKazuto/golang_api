@@ -108,7 +108,7 @@ func TestDeleteBosyuHandlerNormal(t *testing.T) {
 		t.Errorf("got error like: %+v", err)
 	}
 
-	mockReq := MockReq{`{"id": 1}`, token, "/api/bosyu/delete", "DELETE"}
+	mockReq := MockReq{`{"id": 3}`, token, "/api/bosyu/delete", "DELETE"}
 	req, rec := mockReq.createReq()
 
 	contents := e.NewContext(req, rec)
