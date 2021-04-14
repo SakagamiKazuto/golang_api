@@ -42,7 +42,7 @@ func CreateBosyu(bosyu *Bosyu, db *gorm.DB) (*Bosyu, error) {
 	return bosyu, nil
 }
 
-func FindBosyu(userID uint, db *gorm.DB) ([]Bosyu, error) {
+func FindBosyuByUid(userID uint, db *gorm.DB) ([]Bosyu, error) {
 	var bosyus []Bosyu
 	result := db.Where("user_id = ? AND deleted_at IS NULL", userID).Find(&bosyus)
 
@@ -61,7 +61,6 @@ func FindBosyu(userID uint, db *gorm.DB) ([]Bosyu, error) {
 	return bosyus, nil
 }
 
-// どうやって完了した値を受け取るのか知りたい
 func UpdateBosyu(b *Bosyu, db *gorm.DB) (*Bosyu, error) {
 	result := db.Model(b).Update(map[string]interface{}{
 		"title":      b.Title,

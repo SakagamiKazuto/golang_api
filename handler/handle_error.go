@@ -21,7 +21,7 @@ func (e ExternalHandleError) Code() apperror.ErrorCode {
 }
 
 func (e ExternalHandleError) Error() string {
-	return e.OriginalError.Error() + "\n" + e.ErrorMessage
+	return e.ErrorMessage + "\n" + e.OriginalError.Error()
 }
 
 func createLoginFailureErr(c echo.Context, err error) error {
@@ -31,4 +31,3 @@ func createLoginFailureErr(c echo.Context, err error) error {
 		StatusCode:    apperror.AuthenticationFailure,
 	})
 }
-

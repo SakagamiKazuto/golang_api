@@ -70,7 +70,7 @@ func Login(c echo.Context) error {
 		return apperror.ResponseError(c, err)
 	}
 
-	user, err := model.FindUser(u, db.DB)
+	user, err := model.FindUserByMailPass(&model.User{Password: u.Password, Mail: u.Mail}, db.DB)
 	if err != nil {
 		return apperror.ResponseError(c, err)
 	}
@@ -109,7 +109,7 @@ func userIDFromToken(c echo.Context) uint {
 
 func isLogined(c echo.Context) (bool, error) {
 	uid := userIDFromToken(c)
-	if user, err := model.FindUser(&model.User{Model: gorm.Model{ID: uid}}, db.DB); user.ID == 0 {
+	if _, err := model.FindUserByUid(&model.User{Model: gorm.Model{ID: uid}}, db.DB); err != nil {
 		return false, err
 	}
 	return true, nil

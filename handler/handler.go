@@ -25,8 +25,9 @@ func CreateBosyu(c echo.Context) error {
 
 	bosyu := new(model.Bosyu)
 	if err := c.Bind(bosyu); err != nil {
-		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
+		return apperror.ResponseError(c, ExternalHandleError{fmt.Sprintln(`リクエストに問題があります`), err, apperror.InvalidParameter})
 	}
+
 
 	if err := bosyu.Validate(); err != nil {
 		return apperror.ResponseError(c, err)
@@ -59,7 +60,7 @@ func GetBosyu(c echo.Context) error {
 		return apperror.ResponseError(c, ExternalHandleError{err.Error(), err, apperror.InvalidParameter})
 	}
 
-	bosyus, err := model.FindBosyu(bosyu.UserID, db.DB)
+	bosyus, err := model.FindBosyuByUid(bosyu.UserID, db.DB)
 	if err != nil {
 		return apperror.ResponseError(c, err)
 	}

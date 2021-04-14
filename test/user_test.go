@@ -2,141 +2,84 @@ package test
 
 import (
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"strings"
+	"github.com/SakagamiKazuto/golang_api/db"
+	"github.com/SakagamiKazuto/golang_api/model"
 	"testing"
 
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/SakagamiKazuto/golang_api/handler"
 )
 
 /*
-SignupTests
-Handler:
+CreateUser:
 Normal
-1. status201
+1. データを作成する
 
 Error
-1. Name, Mail, Passwordのいずれかが空欄
-2. MailがすでにUsersのテーブルに存在する
+1. Mailの重複キー制約に違反
+2. 内部エラー
 */
-func TestSignupNormal(t *testing.T) {
-	e := echo.New()
-
-	Password := "sample_password"
-	Name := "sample_name"
-	Address:= "sample_address"
-	Tel := "sample_tel"
-	Mail := "sample_mail"
-	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec := createUserSignupRequest(user_json)
-
-	contents := e.NewContext(req, rec)
-	if assert.NoError(t, handler.Signup(contents)) {
-		assert.Equal(t, http.StatusCreated, rec.Code)
-	}
+func TestCreateUserNormal(t *testing.T) {
+	u := new(model.User)
+	u.Mail = "sample9@gmail.com"
+	u.Password = "123123"
+	_, err := model.CreateUser(u, db.DB)
+	assert.NoError(t, err)
 }
 
-func TestSignupError(t *testing.T) {
-	e := echo.New()
+func TestCreateUserError(t *testing.T) {
+	u := new(model.User)
+	u.Mail = "sample1@gmail.com"
+	_, err := model.CreateUser(u, db.DB)
+	assert.Error(t, err, fmt.Sprintf(`メールアドレス%sのデータ挿入に失敗しました:pq: duplicate key value violates unique constraint "users_mail_key"`, u.Mail))
+}
 
-	// 1.Name, Mail, Passwordのいずれかが空欄
-	Password := ""
-	Name := ""
-	Address:= "sample_address"
-	Tel := "sample_tel"
-	Mail := ""
-	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec := createUserSignupRequest(user_json)
+/*
+FindUserByUid
+Normal
+1. idに基づいてユーザー情報を取得
 
-	contents := e.NewContext(req, rec)
-	res := handler.Signup(contents)
-	if assert.Error(t, res) {
-		assert.Equal(t, http.StatusBadRequest, getErrorStatusCode(res))
-	}
+Error
+1. 該当idのユーザーが存在しない
+ */
+func TestFindUserByUidNormal(t *testing.T) {
+	u := new(model.User)
 
-	//2.MailがすでにUsersのテーブルに存在する
-	Mail = "sample1@gmail.com"
-	Password = "sample_password"
-	Name = "sample_name"
-	user_json = fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec = createUserSignupRequest(user_json)
+	u.ID = 1
+	_, err := model.FindUserByUid(u, db.DB)
+	assert.NoError(t, err)
+}
 
-	contents = e.NewContext(req, rec)
-	res = handler.Signup(contents)
-	if assert.Error(t, res) {
-		assert.Equal(t, http.StatusConflict, getErrorStatusCode(res))
-	}
+func TestFindUserByUidError(t *testing.T) {
+	u := new(model.User)
+
+	u.ID = 999999
+	_, err := model.FindUserByUid(u, db.DB)
+	assert.Error(t, err, fmt.Sprint("該当のユーザーが見つかりません:record not found"))
 }
 
 
 /*
-LoginTests
-Handler:
+FindUserByMailPass
 Normal
-1. status200
+1. MailとPassに基づいてユーザー情報を取得
 
 Error
-1. Mail, Passwordの値に基づくUserが存在しない
+1. 該当条件のユーザーが存在しない
 */
-func TestLoginNormal(t *testing.T) {
-	e := echo.New()
+func TestFindUserByMailPassNormal(t *testing.T) {
+	u := new(model.User)
 
-	Mail := "sample1@gmail.com"
-	Password := "123"
-	Name := "sample_name"
-	Address:= "sample_address"
-	Tel := "sample_tel"
-	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec := createUserLoginRequest(user_json)
-
-	contents := e.NewContext(req, rec)
-	if assert.NoError(t, handler.Login(contents)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-	}
+	u.Password = "123"
+	u.Mail = "sample1@gmail.com"
+	_, err := model.FindUserByMailPass(u, db.DB)
+	assert.NoError(t, err)
 }
 
-func TestLoginError(t *testing.T) {
-	e := echo.New()
+func TestFindUserByMailPassError(t *testing.T) {
+	u := new(model.User)
 
-	// 1.Mail, Passwordの値に基づくUserが存在しない
-	Mail := "not_exist@gmail.com"
-	Password := "9999999999"
-	Name := "sample_name"
-	Address:= "sample_address"
-	Tel := "sample_tel"
-	user_json := fmt.Sprintf("{\"password\": \"%v\", \"name\": \"%v\", \"address\": \"%v\", \"tel\": \"%v\", \"mail\": \"%v\"}", Password, Name, Address, Tel, Mail)
-	req, rec := createUserLoginRequest(user_json)
-
-	contents := e.NewContext(req, rec)
-	if assert.Error(t, handler.Login(contents)) {
-		assert.Equal(t, http.StatusOK, rec.Code)
-	}
+	u.Password = "999999"
+	u.Mail = "sample999@gmail.com"
+	_, err := model.FindUserByMailPass(u, db.DB)
+	assert.Error(t, err, fmt.Sprint("該当のユーザーが見つかりません:record not found"))
 }
-
-
-// CommonMethod's
-func createUserSignupRequest(user_json string) (*http.Request, *httptest.ResponseRecorder) {
-	bodyReader := strings.NewReader(user_json)
-	req := httptest.NewRequest("POST", "/signup", bodyReader)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	rec := httptest.NewRecorder()
-	return req, rec
-}
-
-func createUserLoginRequest(user_json string) (*http.Request, *httptest.ResponseRecorder) {
-	bodyReader := strings.NewReader(user_json)
-	req := httptest.NewRequest("POST", "/login", bodyReader)
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json")
-	rec := httptest.NewRecorder()
-	return req, rec
-}
-
-
-
-

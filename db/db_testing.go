@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"time"
 
@@ -14,22 +15,28 @@ import (
 /*
 自動テスト実行するにあたり必要な関数はこのファイルに置く
 */
-func ConnectTestDB() {
+func ConnectTestDB() *gorm.DB {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		throughError(err)
+	}
+
 	DBHost := os.Getenv("DB_HOST")
 	DBUser := os.Getenv("DB_USER")
 	DBName := os.Getenv("TEST_DB_NAME")
 	DBPass := os.Getenv("DB_PASSWORD")
 	DBPort := os.Getenv("DB_PORT")
 	CONNECT := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",DBHost,DBUser, DBName, DBPass, DBPort)
-	db, err := gorm.Open(Dialect, CONNECT)
+	DB, err = gorm.Open(Dialect, CONNECT)
 	if err != nil {
-		panic("failed to connect database")
+		throughError(err)
 	}
-	db.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
+	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
+	return DB
 }
 
-func InsertTestData() {
-	ts := DB.Begin()
+func InsertTestData(db *gorm.DB) {
+	ts := db.Begin()
 	defer ts.Commit()
 
 	// User Data
@@ -49,8 +56,8 @@ func InsertTestData() {
 	return
 }
 
-func DeleteTestData() {
-	ts := DB.Begin()
+func DeleteTestData(db *gorm.DB) {
+	ts := db.Begin()
 	defer ts.Commit()
 	ts.Exec("DELETE FROM users")
 	ts.Exec("DELETE FROM bosyus")
@@ -66,3 +73,6 @@ func getTimeNowPointer() *time.Time {
 	return nowP
 }
 
+func throughError(err error) string {
+	panic(fmt.Sprintf("エラーが発生しました\n%s",err.Error()))
+}
