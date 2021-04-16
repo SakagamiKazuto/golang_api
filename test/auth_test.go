@@ -13,7 +13,7 @@ import (
 
 /*
 Handler
-Signup
+createUser
 */
 func TestSignupNormal(t *testing.T) {
 	e := echo.New()

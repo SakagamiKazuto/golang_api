@@ -2,14 +2,13 @@ package db
 
 import (
 	"fmt"
+	"github.com/SakagamiKazuto/golang_api/domain"
 	"github.com/joho/godotenv"
 	"os"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-
-	"github.com/SakagamiKazuto/golang_api/model"
 )
 
 /*
@@ -26,12 +25,12 @@ func ConnectTestDB() *gorm.DB {
 	DBName := os.Getenv("TEST_DB_NAME")
 	DBPass := os.Getenv("DB_PASSWORD")
 	DBPort := os.Getenv("DB_PORT")
-	CONNECT := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable",DBHost,DBUser, DBName, DBPass, DBPort)
+	CONNECT := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable", DBHost, DBUser, DBName, DBPass, DBPort)
 	DB, err = gorm.Open(Dialect, CONNECT)
 	if err != nil {
 		throughError(err)
 	}
-	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
+	DB.AutoMigrate(&domain.User{}, &domain.Bosyu{}, &domain.Message{})
 	return DB
 }
 
@@ -40,15 +39,15 @@ func InsertTestData(db *gorm.DB) {
 	defer ts.Commit()
 
 	// User Data
-	ts.Create(&model.User{Name: "sample1", Mail: "sample1@gmail.com", Password: "123", Model: gorm.Model{ID: 1}})
+	ts.Create(&domain.User{Name: "sample1", Mail: "sample1@gmail.com", Password: "123", Model: gorm.Model{ID: 1}})
 
 	// Bosyu Data
 	// normal pattern1
-	ts.Create(&model.Bosyu{Title: "sample1", About: "sample1", UserID: 1, Model: gorm.Model{ID:1}})
+	ts.Create(&domain.Bosyu{Title: "sample1", About: "sample1", UserID: 1, Model: gorm.Model{ID: 1}})
 	// deleted_at is not Null
-	ts.Create(&model.Bosyu{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{ID:2, DeletedAt: getTimeNowPointer()}})
+	ts.Create(&domain.Bosyu{Title: "sample2", About: "sample2", UserID: 1, Model: gorm.Model{ID: 2, DeletedAt: getTimeNowPointer()}})
 	// normal pattern2
-	ts.Create(&model.Bosyu{Title: "sample3", About: "sample3", UserID: 1, Model: gorm.Model{ID:3}})
+	ts.Create(&domain.Bosyu{Title: "sample3", About: "sample3", UserID: 1, Model: gorm.Model{ID: 3}})
 
 	if err := ts.Error; err != nil {
 		ts.Rollback()
@@ -74,5 +73,5 @@ func getTimeNowPointer() *time.Time {
 }
 
 func throughError(err error) string {
-	panic(fmt.Sprintf("エラーが発生しました\n%s",err.Error()))
+	panic(fmt.Sprintf("エラーが発生しました\n%s", err.Error()))
 }

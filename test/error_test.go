@@ -35,7 +35,7 @@ package test
 //	req, rec := createUserSignupRequest(user_json)
 //
 //	contents := e.NewContext(req, rec)
-//	if assert.NoError(t, handler.Signup(contents)) {
+//	if assert.NoError(t, handler.createUser(contents)) {
 //		assert.Equal(t, http.StatusCreated, rec.Code)
 //	}
 //}
@@ -53,7 +53,7 @@ package test
 //	req, rec := createUserSignupRequest(user_json)
 //
 //	contents := e.NewContext(req, rec)
-//	res := handler.Signup(contents)
+//	res := handler.createUser(contents)
 //	if assert.Error(t, res) {
 //		assert.Equal(t, http.StatusBadRequest, getErrorStatusCode(res))
 //	}
@@ -66,7 +66,7 @@ package test
 //	req, rec = createUserSignupRequest(user_json)
 //
 //	contents = e.NewContext(req, rec)
-//	res = handler.Signup(contents)
+//	res = handler.createUser(contents)
 //	if assert.Error(t, res) {
 //		assert.Equal(t, http.StatusConflict, getErrorStatusCode(res))
 //	}

@@ -1,8 +1,7 @@
-package model
+package database
 
 import (
 	"fmt"
-	"github.com/SakagamiKazuto/golang_api/apperror"
 	"github.com/lib/pq"
 )
 
@@ -25,22 +24,22 @@ func (i InternalDBError) Error() string {
 type ExternalDBError struct {
 	ErrorMessage  string
 	OriginalError error
-	StatusCode    apperror.ErrorCode
+	StatusCode    ErrorCode
 }
 
 func (e ExternalDBError) Messages() []string {
 	return []string{e.Error()}
 }
 
-func (e ExternalDBError) Code() apperror.ErrorCode {
+func (e ExternalDBError) Code() ErrorCode {
 	return e.StatusCode
 }
 
 func (e ExternalDBError) Error() string {
-	return e.ErrorMessage + ":" + e.OriginalError.Error()
+	return e.ErrorMessage + "\n" + e.OriginalError.Error()
 }
 
-func createInDBError(err error) error {
+func CreateInDBError(err error) error {
 	pqe, ok := err.(*pq.Error)
 
 	if !ok {

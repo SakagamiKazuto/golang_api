@@ -1,4 +1,4 @@
-package db
+package dbhandle
 
 import (
 	"fmt"
@@ -11,17 +11,23 @@ import (
 	"os"
 )
 
-var DB *gorm.DB
+type DBHandle struct {
+	DBInf *gorm.DB
+}
+
+func (dbh DBHandle) ConInf() *gorm.DB {
+	return dbh.DBInf
+}
 
 const Dialect = "postgres"
 
-func InitDB() {
-	var err error
-	DB, err = connectDB()
+func NewDBHandler() *DBHandle {
+	DB, err := connectDB()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	DB.AutoMigrate(&domain.User{}, &domain.Bosyu{}, &domain.Message{})
+	return &DBHandle{DB}
 }
 
 func connectDB() (*gorm.DB, error) {

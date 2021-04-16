@@ -1,11 +1,9 @@
 package main
 
 import (
-	"os"
-	"github.com/SakagamiKazuto/golang_api/db"
+	"github.com/SakagamiKazuto/golang_api/infra/waf"
 	_ "github.com/SakagamiKazuto/golang_api/logger"
 )
-
 
 // @title matchihg_portfolio
 // @version 1.0
@@ -13,15 +11,8 @@ import (
 // @host localhost:9999
 // @BasePath /
 func main() {
-	db.InitDB()
-	router := newRouter()
-	router.Logger.Fatal(router.Start(":" + getPort()))
+	//db.InitDB()
+	waf.Run()
 }
 
-func getPort() string {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "9999"
-	}
-	return port
-}
+
