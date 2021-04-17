@@ -2,9 +2,8 @@ package test
 
 import (
 	"fmt"
-	"github.com/SakagamiKazuto/golang_api/db"
-	"github.com/SakagamiKazuto/golang_api/handler"
-	"github.com/SakagamiKazuto/golang_api/model"
+	"github.com/SakagamiKazuto/golang_api/domain"
+	"github.com/SakagamiKazuto/golang_api/infra/waf"
 	"github.com/jinzhu/gorm"
 	"net/http"
 	"net/http/httptest"
@@ -34,10 +33,10 @@ func (mr MockReq) createReq() (*http.Request, *httptest.ResponseRecorder) {
 }
 
 func createTokenFromSomeUser() (string, error) {
-	user, err := model.FindUserByUid(&model.User{Model: gorm.Model{ID: 1}}, db.DB)
+	user, err := ur.FindUserByUid(&domain.User{Model: gorm.Model{ID: 1}})
 	if err != nil {
 		panic(fmt.Sprintf(`テスト中にエラーが発生:%s`, err.Error()))
 	}
-	token, err := handler.CreateToken(user.ID, user.Mail)
+	token, err := waf.CreateToken(user.ID, user.Mail)
 	return token, err
 }

@@ -1,27 +1,32 @@
-package db
+package dbhandle
 
 import (
 	"fmt"
-	"github.com/SakagamiKazuto/golang_api/model"
+	"github.com/SakagamiKazuto/golang_api/domain"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
 
-var DB *gorm.DB
+type DBHandle struct {
+	DBInf *gorm.DB
+}
+
+func (dbh DBHandle) ConInf() *gorm.DB {
+	return dbh.DBInf
+}
 
 const Dialect = "postgres"
 
-func InitDB() {
-	var err error
-	DB, err = connectDB()
+func NewDBHandler() *DBHandle {
+	DB, err := connectDB()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	DB.AutoMigrate(&model.User{}, &model.Bosyu{}, &model.Message{})
+	DB.AutoMigrate(&domain.User{}, &domain.Bosyu{}, &domain.Message{})
+	return &DBHandle{DB}
 }
 
 func connectDB() (*gorm.DB, error) {
@@ -29,7 +34,7 @@ func connectDB() (*gorm.DB, error) {
 	if os.Getenv("DATABASE_URL") != "" {
 		CONNECT = os.Getenv("DATABASE_URL")
 	} else {
-		err := godotenv.Load(".env")
+		err := godotenv.Load("/go/src/.env")
 		if err != nil {
 			return nil, err
 		}

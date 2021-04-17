@@ -24,8 +24,8 @@ services:
         PGDATA: /var/lib/postgresql/data/pgdata
         TZ: 'Asia/Tokyo'
       volumes:
-          - ./db/data:/var/lib/postgresql/data
-          - ./db/sql:/docker-entrypoint-initdb.d
-          - ./db/logs:/var/log
+          - ./infra/dbhandle/data:/var/lib/postgresql/data
+          - ./infra/dbhandle/sql:/docker-entrypoint-initdb.d
+          - ./infra/dbhandle/logs:/var/log
       ports:
         - ${DB_PORT}:${DB_PORT}

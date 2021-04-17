@@ -16,8 +16,8 @@ tmp/
 src/
 pkg/
 
-# Append Local UnNeeded files
-db/data/
+# data files to be created by postgresql
+infra/dbhandle/data/
 
 # idea files
 .idea/workspace.xml

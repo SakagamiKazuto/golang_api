@@ -3,8 +3,6 @@ package test
 import (
 	"os"
 	"testing"
-
-	"github.com/SakagamiKazuto/golang_api/db"
 )
 
 /*
@@ -15,9 +13,9 @@ import (
 3. テストの実行
  */
 func TestMain(m *testing.M) {
-	connectDB := db.ConnectTestDB()
-	db.DeleteTestData(connectDB)
-	db.InsertTestData(connectDB)
+	connectDB := NewTestDB()
+	DeleteTestData(connectDB)
+	InsertTestData(connectDB)
 	code := m.Run()
 
 	os.Exit(code)
