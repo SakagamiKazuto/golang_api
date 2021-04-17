@@ -18,11 +18,14 @@ func (br BosyuRepository) CreateBosyu(bosyu *domain.Bosyu) (*domain.Bosyu, error
 	return bosyu, nil
 }
 
-func (br BosyuRepository) FindBosyuByUid(userID uint) (domain.Bosyus, error) {
+func (br BosyuRepository) FindBosyuByUid(userID uint) (*domain.Bosyus, error) {
 	db := br.ConInf()
-	var bosyus domain.Bosyus
-	result := db.Where("user_id = ? AND deleted_at IS NULL", userID).Find(&bosyus)
+	var bosyus *domain.Bosyus
+	result := db.Where("user_id = ? AND deleted_at IS NULL", userID).Find(bosyus)
 
+	if result.Error != nil {
+		return nil, CreateInDBError(result.Error)
+	}
 	// sliceでは.RecordNotFound()は使えない → https://qiita.com/hiromichi_n/items/a08a7e0f33641d71e6ef
 	if result.RowsAffected == 0 {
 		return nil, ExternalDBError{
@@ -30,10 +33,6 @@ func (br BosyuRepository) FindBosyuByUid(userID uint) (domain.Bosyus, error) {
 			OriginalError: errors.New("record not found"),
 			StatusCode:    ValueNotFound,
 		}
-	}
-
-	if result.Error != nil {
-		return nil, CreateInDBError(result.Error)
 	}
 	return bosyus, nil
 }
@@ -47,7 +46,9 @@ func (br BosyuRepository) UpdateBosyu(b *domain.Bosyu) (*domain.Bosyu, error) {
 		"city":       b.City,
 		"level":      b.Level,
 	})
-
+	if result.Error != nil {
+		return nil, CreateInDBError(result.Error)
+	}
 	if result.RowsAffected == 0 {
 		return nil, ExternalDBError{
 			ErrorMessage:  fmt.Sprintf(`該当の募集(ID=%d)は見つかりません`, b.ID),
@@ -56,16 +57,15 @@ func (br BosyuRepository) UpdateBosyu(b *domain.Bosyu) (*domain.Bosyu, error) {
 		}
 	}
 
-	if result.Error != nil {
-		return nil, CreateInDBError(result.Error)
-	}
-
 	return b, nil
 }
 
 func (br BosyuRepository) DeleteBosyu(bosyuID uint) error {
 	db := br.ConInf()
 	result := db.Where("id = ?", bosyuID).Delete(&domain.Bosyu{})
+	if result.Error != nil {
+		return CreateInDBError(result.Error)
+	}
 	if result.RowsAffected == 0 {
 		return ExternalDBError{
 			ErrorMessage:  fmt.Sprintf(`該当の募集(ID=%d)は見つかりません`, bosyuID),
@@ -74,8 +74,5 @@ func (br BosyuRepository) DeleteBosyu(bosyuID uint) error {
 		}
 	}
 
-	if result.Error != nil {
-		return CreateInDBError(result.Error)
-	}
 	return nil
 }

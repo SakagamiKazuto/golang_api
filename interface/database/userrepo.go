@@ -44,7 +44,9 @@ func (ur UserRepository) FindUserByMailPass(u *domain.User) (*domain.User, error
 	db := ur.ConInf()
 	user := new(domain.User)
 	result := db.Where("mail = ? AND password = ?", u.Mail, u.Password).First(&user)
-
+	if result.Error != nil {
+		return nil, CreateInDBError(result.Error)
+	}
 	if result.RecordNotFound() {
 		return nil, ExternalDBError{
 			ErrorMessage:  fmt.Sprintln("該当のユーザーが見つかりません"),
@@ -53,9 +55,6 @@ func (ur UserRepository) FindUserByMailPass(u *domain.User) (*domain.User, error
 		}
 	}
 
-	if result.Error != nil {
-		return nil, CreateInDBError(result.Error)
-	}
 	return user, nil
 }
 
@@ -63,17 +62,15 @@ func (ur UserRepository) FindUserByUid(u *domain.User) (*domain.User, error) {
 	db := ur.ConInf()
 	user := new(domain.User)
 	result := db.Where("id = ?", u.ID).First(&user)
-
+	if result.Error != nil {
+		return nil, CreateInDBError(result.Error)
+	}
 	if result.RecordNotFound() {
 		return nil, ExternalDBError{
 			ErrorMessage:  fmt.Sprintln("該当のユーザーが見つかりません"),
 			OriginalError: result.Error,
 			StatusCode:    ValueNotFound,
 		}
-	}
-
-	if result.Error != nil {
-		return nil, CreateInDBError(result.Error)
 	}
 	return user, nil
 }

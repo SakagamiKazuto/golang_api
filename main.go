@@ -5,13 +5,12 @@ import (
 	_ "github.com/SakagamiKazuto/golang_api/logger"
 )
 
-// @title matchihg_portfolio
+// @title golang_api
 // @version 1.0
 // @description This is goecho api server.
 // @host localhost:9999
 // @BasePath /
 func main() {
-	//db.InitDB()
 	waf.Run()
 }
 

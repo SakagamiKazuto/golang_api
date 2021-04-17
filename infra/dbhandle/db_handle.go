@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/SakagamiKazuto/golang_api/domain"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
@@ -35,7 +34,7 @@ func connectDB() (*gorm.DB, error) {
 	if os.Getenv("DATABASE_URL") != "" {
 		CONNECT = os.Getenv("DATABASE_URL")
 	} else {
-		err := godotenv.Load(".env")
+		err := godotenv.Load("/go/src/.env")
 		if err != nil {
 			return nil, err
 		}

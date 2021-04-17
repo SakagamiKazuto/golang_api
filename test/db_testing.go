@@ -1,4 +1,4 @@
-package db
+package test
 
 import (
 	"fmt"
@@ -8,15 +8,11 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-/*
-自動テスト実行するにあたり必要な関数はこのファイルに置く
-*/
-func ConnectTestDB() *gorm.DB {
-	err := godotenv.Load("../.env")
-	if err != nil {
+func NewTestDB() *gorm.DB {
+	if err := godotenv.Load("/go/src/.env"); err != nil {
 		throughError(err)
 	}
 
@@ -26,12 +22,12 @@ func ConnectTestDB() *gorm.DB {
 	DBPass := os.Getenv("DB_PASSWORD")
 	DBPort := os.Getenv("DB_PORT")
 	CONNECT := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable", DBHost, DBUser, DBName, DBPass, DBPort)
-	DB, err = gorm.Open(Dialect, CONNECT)
+	db, err := gorm.Open("postgres", CONNECT)
 	if err != nil {
 		throughError(err)
 	}
-	DB.AutoMigrate(&domain.User{}, &domain.Bosyu{}, &domain.Message{})
-	return DB
+	db.AutoMigrate(&domain.User{}, &domain.Bosyu{}, &domain.Message{})
+	return db
 }
 
 func InsertTestData(db *gorm.DB) {
