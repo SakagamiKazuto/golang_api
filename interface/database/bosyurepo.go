@@ -20,7 +20,7 @@ func (br BosyuRepository) CreateBosyu(bosyu *domain.Bosyu) (*domain.Bosyu, error
 
 func (br BosyuRepository) FindBosyuByUid(userID uint) (*domain.Bosyus, error) {
 	db := br.ConInf()
-	var bosyus *domain.Bosyus
+	bosyus := &domain.Bosyus{}
 	result := db.Where("user_id = ? AND deleted_at IS NULL", userID).Find(bosyus)
 
 	if result.Error != nil {
