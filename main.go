@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/SakagamiKazuto/golang_api/infra/waf"
-	_ "github.com/SakagamiKazuto/golang_api/logger"
+	_ "github.com/SakagamiKazuto/golang_api/infra/logger"
 )
 
 // @title golang_api
