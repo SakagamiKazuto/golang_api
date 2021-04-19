@@ -93,9 +93,7 @@ RUN go get github.com/go-delve/delve/cmd/dlv
 
 # アーキテクチャについて
 アーキテクチャにはクリーンアーキテクチャを使用しています。
-```
-※goumlで生成したクラス図の画像※
-```
+![class Dirgram](https://user-images.githubusercontent.com/47532989/115226628-6f2ffd80-a14a-11eb-9b42-a655a39da02c.png)
 
 ## infra
 ### waf
