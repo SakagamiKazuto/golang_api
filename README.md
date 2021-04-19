@@ -25,44 +25,30 @@
 
 また、BosyusのAPIにコールするにはUser経由で生成したJWTのTokenをリクエストヘッダーに持たせる必要がある仕様になっています。
 
-Usersに関してはSignup(create)とLogin → [ソースコード](https://github.com/SakagamiKazuto/golang_api/blob/main/handler/auth.go)
-
-Bosyusに関してはCRUDのAPIを作成しました →[ソースコード](https://github.com/SakagamiKazuto/golang_api/blob/main/handler/handler.go)
-
 また基本的なAPIの仕様はこちらでも確認可能です。
 
-<https://golang-api-portfolio.herokuapp.com/swagger/index.html>
+<https://goapi-staging.herokuapp.com/swagger/index.html>
 
 # 起動手順
 ## コンテナの起動
 コンテナの起動は以下の手順で行うことが出来ます
 ```
 git clone https://github.com/SakagamiKazuto/golang_api.git
-docker-compose up —build db ※ 一度目の起動がデータ初期化の都合でエラーが出る場合がありますが、もう一度docker-compose upを行うと起動できます。
+docker-compose up —build db
 docker-compose up —build api
 ```
 ## ホットリロードとデバッガ
-またAPIでは
+またAPIではホットリロードには[air](https://github.com/cosmtrek/air) ,デバッガには[delve](https://github.com/go-delve/delve) を採用しています。
 
-ホットリロードには[air](https://github.com/cosmtrek/air) 、デバッガには[delve](https://github.com/go-delve/delve)
-
-を採用しています。
-
-そのため、上記の手順でコンテナ起動を行った後にデバッガの起動を行わずにリクエストを発行した場合、
+delveではデバッガの起動時にソースコードの実行が行われるので上記の手順でコンテナ起動を行った後にそのままリクエストを発行した場合以下が返ってきてしまいます。
 ```
 curl: (52) Empty reply from server
 ```
-が返ってきてしまいます。
+そのため使用するエディタでデバッガを使用できる環境を設定する必要があります。
+デバッガの設定については各エディタにてremote debugの設定を行ってください。
 
-デバッガの設定については各エディタにて
-
-remote debugの設定を行ってください。
-### 参考
 #### idea製品
 <https://qiita.com/4486/items/d1dad30403348004fc0a#goland%E3%81%8B%E3%82%89%E3%83%87%E3%83%90%E3%83%83%E3%82%B0%E3%81%99%E3%82%8B>
-
-#### VSCODE
-<https://qiita.com/yiheng-lin/items/510b56454c30c7e00635>
 
 # API動作確認用
 またAPIの動作確認は以下コマンドを順番にご利用いただければデータを用意することなくご確認いただけます。
@@ -77,7 +63,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"Name": "sample1", "Mail":
 curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-Token>"  -d '{"title": "sample_title", "about": "sample_about", "pref": "愛媛県", "city": "松山市", "level": "player", "user_id": 1}' localhost:9999/api/bosyu/create
 
 4. GET bosyu
-curl -X GET -H "Authorization: Bearer <JWT-Token>" http://localhost:9999/api/bosyu/get?user_id=1
+curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-Token>" -d '{"user_id": 1}' http://localhost:9999/api/bosyu/get
 
 5. UPDATE bosyu
 curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-Token>"  -d '{"title": "sample_title", "about": "sample_about", "pref": "北海道", "city": "松山市", "level": "player", "user_id": 1, "id": 1}' localhost:9999/api/bosyu/update
@@ -94,13 +80,9 @@ curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-T
 # モジュール管理について
 このAPIではモジュール管理にはgo.modを使用しています。
 
-コード内から参照するライブラリを使用する場合は
+コード内から参照するライブラリを使用する場合は一般的なgo modの使用方法にて行い、
 
-一般的なgo modの使用方法にて行い、
-
-デバッガなどのコード内から参照しないツールを導入する場合は、
-
-Dockerfile.devに追加してください。
+デバッガなどのコード内から参照しないツールを導入する場合はDockerfile.devに適宜追加してください。
 
 (例)
 ```
@@ -112,7 +94,7 @@ RUN go get github.com/go-delve/delve/cmd/dlv
 # アーキテクチャについて
 アーキテクチャにはクリーンアーキテクチャを使用しています。
 ```
-goumlのクラス図
+※goumlで生成したクラス図の画像※
 ```
 
 ## infra
@@ -137,7 +119,6 @@ database層を使ってdomain層とやりとりを行います。
 
 ## domain
 データベースの構造体が定義されます。
-
 
 ディレクトリ構成
 ```
@@ -176,10 +157,10 @@ type InternalError interface {
 interfaceを実装した構造体を使用して以下のようなイメージで使用してください
 ```
 ExternalDBError{
-			ErrorMessage:  fmt.Sprintf(`該当の募集(ID=%d)は見つかりません`, b.ID),
-			OriginalError: err,
-			StatusCode:    ValueNotFound,
-		}
+		ErrorMessage:  fmt.Sprintf(`該当の募集(ID=%d)は見つかりません`, b.ID),
+		OriginalError: err,
+		StatusCode:    ValueNotFound,
+	}
 ```
 
 
