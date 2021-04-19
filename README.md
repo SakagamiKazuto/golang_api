@@ -10,6 +10,15 @@
 6. swagger
 7. docker
 8. heroku
+9. air/delve
+
+# エディタについて
+エディタについてはgolandを推奨します。
+
+他のエディタを活用する場合、 以下の設定を行ってください。
+
+1. コード補完のためのGopath
+2. デバッガのためのremote debug
 
 # データ構成とAPIについて
 このAPIには「Users」と「Bosyus」の2つのテーブルがあり、Users→Bosyusがhas manyの関係で結ばれています。
@@ -25,12 +34,36 @@ Bosyusに関してはCRUDのAPIを作成しました →[ソースコード](htt
 <https://golang-api-portfolio.herokuapp.com/swagger/index.html>
 
 # 起動手順
-起動確認は以下の手順で行うことが出来ます
+## コンテナの起動
+コンテナの起動は以下の手順で行うことが出来ます
 ```
 git clone https://github.com/SakagamiKazuto/golang_api.git
 docker-compose up —build db ※ 一度目の起動がデータ初期化の都合でエラーが出る場合がありますが、もう一度docker-compose upを行うと起動できます。
 docker-compose up —build api
 ```
+## ホットリロードとデバッガ
+またAPIでは
+
+ホットリロードには[air](https://github.com/cosmtrek/air) 、デバッガには[delve](https://github.com/go-delve/delve)
+
+を採用しています。
+
+そのため、上記の手順でコンテナ起動を行った後にデバッガの起動を行わずにリクエストを発行した場合、
+```
+curl: (52) Empty reply from server
+```
+が返ってきてしまいます。
+
+デバッガの設定については各エディタにて
+
+remote debugの設定を行ってください。
+### 参考
+#### idea製品
+<https://qiita.com/4486/items/d1dad30403348004fc0a#goland%E3%81%8B%E3%82%89%E3%83%87%E3%83%90%E3%83%83%E3%82%B0%E3%81%99%E3%82%8B>
+
+#### VSCODE
+<https://qiita.com/yiheng-lin/items/510b56454c30c7e00635>
+
 # API動作確認用
 またAPIの動作確認は以下コマンドを順番にご利用いただければデータを用意することなくご確認いただけます。
 ```
@@ -58,26 +91,97 @@ curl -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer <JWT-T
 
 またORMにはRelationが容易であることや比較的記述がシンプルな点からgormを採用しています。
 
-# ディレクトリとパッケージについて
-このAPIは以下のような流れでパッケージの参照を行い、逆参照は行わない方針で実装しました。
-```
-handler → db
-↓  ↓
-model
-```
-またディレクトリ構成は以下のコマンドで確認いただけます。
+# モジュール管理について
+このAPIではモジュール管理にはgo.modを使用しています。
 
+コード内から参照するライブラリを使用する場合は
+
+一般的なgo modの使用方法にて行い、
+
+デバッガなどのコード内から参照しないツールを導入する場合は、
+
+Dockerfile.devに追加してください。
+
+(例)
 ```
-tree -d -I 'data'
+RUN go get -u github.com/kazukousen/gouml/cmd/gouml
+RUN go get -u github.com/cosmtrek/air
+RUN go get github.com/go-delve/delve/cmd/dlv
+```
+
+# アーキテクチャについて
+アーキテクチャにはクリーンアーキテクチャを使用しています。
+```
+goumlのクラス図
+```
+
+## infra
+### waf
+echoに依存する部分を記述します。
+この使用されるパッケージ(logger, errorなど)はこのディレクトリ以下に配置してください
+
+### dbhandle
+gormに依存する部分を記述します。
+
+## interface
+### controller
+usecaseを使用してwaf層に返還します。
+
+### database
+dbhandle層を使った処理を記述します。
+dbhandle層はinterfaceを介して参照されます。
+
+## usecase
+database層を使ってdomain層とやりとりを行います。
+基本的にはここの処理がcontroller層呼び出されます。
+
+## domain
+データベースの構造体が定義されます。
+
+
+ディレクトリ構成
+```
+tree -d -I "pkg|src|data|tmp"
 .
-├── common
-├── db
-│   └── sql
 ├── docs
-├── handler
-├── model
-└── test
+├── domain
+├── infra
+│   ├── dbhandle
+│   │   ├── logs
+│   │   └── sql
+│   └── waf
+│       ├── apperror
+│       └── logger
+├── interface
+│   ├── controller
+│   └── database
+├── test
+└── usecasee
 ```
+
+# 例外処理について
+外部起因および内部起因のエラーを識別する目的で
+database層にエラーのインターフェースを定義しています。
+```
+type ExternalError interface {
+	Code() ErrorCode
+	Messages() []string
+}
+
+type InternalError interface {
+	Internal() bool
+}
+```
+新たにrepository層を定義する場合には、
+interfaceを実装した構造体を使用して以下のようなイメージで使用してください
+```
+ExternalDBError{
+			ErrorMessage:  fmt.Sprintf(`該当の募集(ID=%d)は見つかりません`, b.ID),
+			OriginalError: err,
+			StatusCode:    ValueNotFound,
+		}
+```
+
 
 # データベースについて
 このAPIにおいてデータベースは3つ登場します。
@@ -87,32 +191,6 @@ tree -d -I 'data'
 テスト用のデータベースはgolangにおいてテストDBのmock化を調査したところ、handlerなどを含むテストに適切なライブラリが存在しないことが判明したため用意しました。
 
 なおテストDBのcreateはdocker-compose up dbの初回実行時に行われ、その後テーブル内のデータはテスト実行時に初期化されます。
-
-# テストコードについて
-基本的にパッケージhandlerおよびmodelの関数に対して、正常、異常系を網羅するように記述しました。
-
-それぞれのテストコードはTest(FuncName)(PackageName)(Normal|Error)といった規則に基づき命名されています。
-その上で、以下のように網羅しているパターンをコメントで明示した上でNormalでは正常系、Errorでは異常系のパターンをテストしています。
-
-また一部では[go-sqlmock](https://github.com/DATA-DOG/go-sqlmock)の利用を試みましたが、
-
-発行されたクエリの差分を逐一確認する手法は人間にはかなりつらいということが判明したため、あくまでもデータの動きによるテストを実施しています。
-```
-/*
-SignupTests
-Handler:
-Normal
-1. status201
-Error
-1. Name, Mail, Passwordのいずれかが空欄
-2. MailがすでにUsersのテーブルに存在する
-*/
-```
-
-なおテストの実行結果は以下のコードで確認できます。
-```
-docker-compose run api go test -v ./test
-```
 
 # OpenAPIについて
 OpenAPIにはswaggerを採用しました。
