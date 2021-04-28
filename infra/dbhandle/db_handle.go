@@ -18,10 +18,17 @@ func (dbh DBHandle) ConInf() *gorm.DB {
 	return dbh.DBInf
 }
 
-const Dialect = "postgres"
 
 func NewDBHandler() *DBHandle {
-	DB, err := connectDB()
+	var DB *gorm.DB
+	var err error
+
+	if os.Getenv("DATABASE_URL") != "" {
+		DB, err = connectHerokuDB()
+	} else {
+		DB, err = connectLocalDB()
+	}
+
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -29,24 +36,28 @@ func NewDBHandler() *DBHandle {
 	return &DBHandle{DB}
 }
 
-func connectDB() (*gorm.DB, error) {
-	var CONNECT string
-	if os.Getenv("DATABASE_URL") != "" {
-		CONNECT = os.Getenv("DATABASE_URL")
-	} else {
-		err := godotenv.Load("/go/src/.env")
-		if err != nil {
-			return nil, err
-		}
-
-		DBHost := os.Getenv("DB_HOST")
-		DBUser := os.Getenv("DB_USER")
-		DBName := os.Getenv("DB_NAME")
-		DBPass := os.Getenv("DB_PASSWORD")
-		DBPort := os.Getenv("DB_PORT")
-		CONNECT = fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable", DBHost, DBUser, DBName, DBPass, DBPort)
+func connectLocalDB() (*gorm.DB, error) {
+	err := godotenv.Load("/go/src/.env")
+	if err != nil {
+		return nil, err
 	}
-	db, err := gorm.Open(Dialect, CONNECT)
 
+	DBHost := os.Getenv("DB_HOST")
+	DBUser := os.Getenv("DB_USER")
+	DBName := os.Getenv("DB_NAME")
+	DBPass := os.Getenv("DB_PASSWORD")
+	DBPort := os.Getenv("DB_PORT")
+	DBUrl := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable", DBHost, DBUser, DBName, DBPass, DBPort)
+	return connectDB(DBUrl)
+}
+
+func connectHerokuDB() (*gorm.DB, error) {
+	DBUrl := os.Getenv("DATABASE_URL")
+	return connectDB(DBUrl)
+}
+
+func connectDB(DBUrl string) (*gorm.DB, error) {
+	d := "postgres"
+	db, err := gorm.Open(d, DBUrl)
 	return db, err
 }
