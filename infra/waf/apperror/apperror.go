@@ -1,10 +1,10 @@
 package apperror
 
 import (
+	l "github.com/SakagamiKazuto/golang_api/infra/waf/logger"
 	"github.com/SakagamiKazuto/golang_api/interface/database"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -16,10 +16,10 @@ type ErrorResponse struct {
 func ResponseError(c echo.Context, err error) error {
 	exe, ok := errors.Cause(err).(database.ExternalError)
 	if ok {
-		log.WithFields(log.Fields{
+		l.Log.InfoWithFields("External Error occurred.", database.Fields{
 			"ErrCode":    exe.Code(),
 			"ErrMessage": err.Error(),
-		}).Info("External Error occurred.")
+		})
 
 		httpStatus := database.GetHttpStatus(exe.Code())
 		return c.JSON(httpStatus, &ErrorResponse{
@@ -34,19 +34,18 @@ func ResponseError(c echo.Context, err error) error {
 	// handledなエラーの処理
 	if ok && ie.Internal() {
 		ieres.Code = database.InternalServerError
-		log.WithFields(log.Fields{
+		l.Log.WarnWithFields("Internal Error occurred.", database.Fields{
 			"ErrCode":    database.InternalServerError,
 			"ErrMessage": err.Error(),
-		}).Warn("Internal Error occurred.")
+		})
 		return c.JSON(http.StatusInternalServerError, ieres)
 	}
 
 	// Unhandledなエラーの処理
 	ieres.Code = database.UnHandledError
-	log.WithFields(log.Fields{
+	l.Log.WarnWithFields("Unhandled Error occurred.", database.Fields{
 		"ErrCode":    database.UnHandledError,
 		"ErrMessage": err.Error(),
-	}).Warn("Unhandled Error occurred.")
+	})
 	return c.JSON(http.StatusInternalServerError, ieres)
 }
-

@@ -3,10 +3,11 @@ package dbhandle
 import (
 	"fmt"
 	"github.com/SakagamiKazuto/golang_api/domain"
+	"github.com/SakagamiKazuto/golang_api/infra/waf/logger"
+	"github.com/SakagamiKazuto/golang_api/interface/database"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
-	log "github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -17,7 +18,6 @@ type DBHandle struct {
 func (dbh DBHandle) ConInf() *gorm.DB {
 	return dbh.DBInf
 }
-
 
 func NewDBHandler() *DBHandle {
 	var DB *gorm.DB
@@ -30,7 +30,7 @@ func NewDBHandler() *DBHandle {
 	}
 
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.Log.FatalWithFields("DB接続中にエラーが発生しました", database.Fields{"message": err.Error()})
 	}
 	DB.AutoMigrate(&domain.User{}, &domain.Bosyu{}, &domain.Message{})
 	return &DBHandle{DB}

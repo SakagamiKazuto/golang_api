@@ -4,10 +4,10 @@ import (
 	"fmt"
 	_ "github.com/SakagamiKazuto/golang_api/docs"
 	"github.com/SakagamiKazuto/golang_api/infra/dbhandle"
+	"github.com/SakagamiKazuto/golang_api/infra/waf/logger"
 	"github.com/SakagamiKazuto/golang_api/interface/controller"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/sirupsen/logrus"
 	"github.com/swaggo/echo-swagger"
 	"os"
 )
@@ -68,7 +68,7 @@ func (s *Server) getPort() string {
 func Run() {
 	s, err := createServer()
 	if err != nil {
-		logrus.Fatal(fmt.Sprintf("サーバー起動時にエラーが発生しました\n%s", err.Error()))
+		logger.Log.Fatal(fmt.Sprintf("サーバー起動時にエラーが発生しました\n%s", err.Error()))
 		panic("処理を中断しました")
 	}
 	s.setRouter()
