@@ -52,7 +52,7 @@ func (l logger) WarnWithFields(inf interface{}, f database.Fields) {
 
 func (l logger) Fatal(args ...interface{}) {
 	if l.logger.Level >= logrus.FatalLevel {
-		entry := l.WithFields(logrus.Fields{})
+		entry := l.WithFields(database.Fields{})
 		entry.Data["file"] = fileInfo(2)
 		entry.Fatal(args...)
 	}
@@ -75,7 +75,7 @@ func (l logger) SetFormat(formatter logrus.Formatter) {
 }
 
 func (l logger) WithFields(f database.Fields) *logrus.Entry {
-	return l.logger.WithFields(f)
+	return l.logger.WithFields(logrus.Fields(f))
 }
 
 func fileInfo(skip int) string {

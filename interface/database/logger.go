@@ -3,7 +3,7 @@ package database
 import "github.com/sirupsen/logrus"
 
 // map[string]interface{}として宣言されたlogrusのFieldsをwrapする
-type Fields = logrus.Fields
+type Fields logrus.Fields
 
 type Logger interface {
 	Info(args ...interface{})
