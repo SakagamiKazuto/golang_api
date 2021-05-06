@@ -19,6 +19,4 @@ RUN apk add --no-cache \
         alpine-sdk \
         git
 
-EXPOSE 9999
-
 CMD ["air", "-c", ".air.toml"]

@@ -2,6 +2,7 @@ package waf
 
 import (
 	"fmt"
+	"github.com/SakagamiKazuto/golang_api/config"
 	_ "github.com/SakagamiKazuto/golang_api/docs"
 	"github.com/SakagamiKazuto/golang_api/infra/dbhandle"
 	"github.com/SakagamiKazuto/golang_api/infra/waf/logger"
@@ -9,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/swaggo/echo-swagger"
+	"go/build"
 	"os"
 )
 
@@ -22,8 +24,10 @@ func createServer() (*Server, error) {
 	}, nil
 }
 
-func (s Server) setRouter() {
+func (s *Server) setRouter() {
 	e := s.Echo
+
+	conf := s.prepareConf()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -36,14 +40,14 @@ func (s Server) setRouter() {
 	s.Echo.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	{
-		uc := controller.NewUserController(dbhandle.NewDBHandler())
+		uc := controller.NewUserController(dbhandle.NewDBHandler(conf))
 		s.Echo.POST("/signup", s.SignUp(uc))
 		s.Echo.POST("/login", s.Login(uc))
 	}
 
 	// JWTの認証を必要とするAPIは以下に記述
 	{
-		bc := controller.NewBosyuController(dbhandle.NewDBHandler())
+		bc := controller.NewBosyuController(dbhandle.NewDBHandler(conf))
 		api := s.Echo.Group("/api")
 		api.Use(middleware.JWTWithConfig(JwtConf))
 		api.POST("/bosyu/create", s.CreateBosyu(bc))
@@ -63,6 +67,23 @@ func (s *Server) getPort() string {
 		port = "9999"
 	}
 	return port
+}
+
+func (s *Server) prepareConf() config.Config {
+	confDir := build.Default.GOPATH + "/src/config/env/"
+
+	appMode := os.Getenv("APP_MODE")
+	if appMode == "" {
+		logger.Log.Fatal("failed to get application mode, check whether APP_MODE is set.")
+		panic("appMode is not set")
+	}
+
+	conf, err := config.NewConfig(confDir, appMode)
+	if err != nil {
+		logger.Log.Fatal("NewConfigでエラーが発生")
+		panic(err.Error())
+	}
+	return conf
 }
 
 func Run() {

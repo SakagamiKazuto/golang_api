@@ -2,12 +2,12 @@ package dbhandle
 
 import (
 	"fmt"
+	"github.com/SakagamiKazuto/golang_api/config"
 	"github.com/SakagamiKazuto/golang_api/domain"
 	"github.com/SakagamiKazuto/golang_api/infra/waf/logger"
 	"github.com/SakagamiKazuto/golang_api/interface/database"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/joho/godotenv"
 	"os"
 )
 
@@ -19,14 +19,17 @@ func (dbh DBHandle) ConInf() *gorm.DB {
 	return dbh.DBInf
 }
 
-func NewDBHandler() *DBHandle {
+func NewDBHandler(conf config.Config) *DBHandle {
 	var DB *gorm.DB
 	var err error
 
-	if os.Getenv("DATABASE_URL") != "" {
+	switch os.Getenv("APP_MODE") {
+	case "production", "staging":
 		DB, err = connectHerokuDB()
-	} else {
-		DB, err = connectLocalDB()
+	case "localhost":
+		DB, err = connectLocalDB(conf)
+	default:
+		DB, err = connectLocalDB(conf)
 	}
 
 	if err != nil {
@@ -36,18 +39,8 @@ func NewDBHandler() *DBHandle {
 	return &DBHandle{DB}
 }
 
-func connectLocalDB() (*gorm.DB, error) {
-	err := godotenv.Load("/go/src/.env")
-	if err != nil {
-		return nil, err
-	}
-
-	DBHost := os.Getenv("DB_HOST")
-	DBUser := os.Getenv("DB_USER")
-	DBName := os.Getenv("DB_NAME")
-	DBPass := os.Getenv("DB_PASSWORD")
-	DBPort := os.Getenv("DB_PORT")
-	DBUrl := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=disable", DBHost, DBUser, DBName, DBPass, DBPort)
+func connectLocalDB(conf config.Config) (*gorm.DB, error) {
+	DBUrl := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%d sslmode=disable", conf.DB.Host, conf.DB.User, conf.DB.Name, conf.DB.Password, conf.DB.Port)
 	return connectDB(DBUrl)
 }
 
