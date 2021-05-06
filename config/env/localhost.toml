@@ -1,0 +1,7 @@
+[database]
+name = "golang_psql_dev"
+test_name = "golang_psql_test"
+host = "db"
+port = 5432
+user = "root"
+pass = "root"

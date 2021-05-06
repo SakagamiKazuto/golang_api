@@ -6,6 +6,8 @@ services:
             context: .
         volumes:
             - ./:/go/src
+        environment:
+          APP_MODE: localhost
         ports:
             - "9999:9999"
             - "2345:2345"
